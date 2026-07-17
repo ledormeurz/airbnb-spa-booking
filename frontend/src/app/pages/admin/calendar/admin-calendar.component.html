@@ -1,0 +1,116 @@
+<div class="admin-calendar-page">
+  <div class="container">
+    <h1 class="section-title">Calendrier</h1>
+    <p class="section-subtitle">Gérez les disponibilités et les blocages</p>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    <div class="calendar-layout">
+      <div class="calendar-main">
+        @if (loading) {
+          <div class="spinner"></div>
+        } @else {
+          <div class="calendar">
+            <div class="calendar-header">
+              <div class="calendar-nav">
+                <button type="button" (click)="prevMonth()">←</button>
+              </div>
+              <h3>{{ monthNames[currentMonth - 1] }} {{ currentYear }}</h3>
+              <div class="calendar-nav">
+                <button type="button" (click)="nextMonth()">→</button>
+              </div>
+            </div>
+
+            <div class="calendar-grid">
+              @for (header of dayHeaders; track header) {
+                <div class="calendar-day-header">{{ header }}</div>
+              }
+              @for (day of calendarDays; track $index) {
+                <div class="calendar-day" [class]="day.status" [class.empty]="day.status === 'empty'">
+                  @if (day.day > 0) {
+                    {{ day.day }}
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="calendar-legend">
+              <div class="calendar-legend-item">
+                <span class="calendar-legend-dot" style="background: var(--color-success);"></span>
+                Disponible
+              </div>
+              <div class="calendar-legend-item">
+                <span class="calendar-legend-dot" style="background: var(--color-error);"></span>
+                Réservé
+              </div>
+              <div class="calendar-legend-item">
+                <span class="calendar-legend-dot" style="background: #ff8c00;"></span>
+                Bloqué
+              </div>
+              <div class="calendar-legend-item">
+                <span class="calendar-legend-dot" style="background: #ccc;"></span>
+                Passé
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="calendar-sidebar">
+        <div class="card block-form-card">
+          <div class="card-header">
+            <h3>Bloquer des dates</h3>
+          </div>
+          <div class="block-form">
+            <div class="form-group">
+              <label class="form-label" for="blockStart">Date de début</label>
+              <input id="blockStart" type="date" class="form-control" [(ngModel)]="blockForm.startDate" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="blockEnd">Date de fin</label>
+              <input id="blockEnd" type="date" class="form-control" [(ngModel)]="blockForm.endDate" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="blockReason">Motif</label>
+              <input id="blockReason" type="text" class="form-control" placeholder="Ex: Maintenance" [(ngModel)]="blockForm.reason" />
+            </div>
+            <button type="button" class="btn btn-primary btn-block" (click)="createBlock()">Bloquer</button>
+          </div>
+        </div>
+
+        @if (blocks.length > 0) {
+          <div class="card blocks-list-card">
+            <div class="card-header">
+              <h3>Blocages actuels</h3>
+            </div>
+            <div class="blocks-list">
+              @for (block of blocks; track block.id) {
+                <div class="block-item">
+                  <div class="block-info">
+                    <span class="block-dates">{{ block.startDate | date:'dd/MM/yyyy' }} — {{ block.endDate | date:'dd/MM/yyyy' }}</span>
+                    @if (block.reason) {
+                      <span class="block-reason">{{ block.reason }}</span>
+                    }
+                  </div>
+                  <button type="button" class="btn btn-danger btn-sm" (click)="deleteBlock(block.id)">×</button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

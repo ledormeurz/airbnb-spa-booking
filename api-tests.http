@@ -1,0 +1,98 @@
+# ============================================================
+# Airbnb Spa Booking — API Test Requests
+# ============================================================
+# Use with VS Code REST Client extension (humao.rest-client)
+# or any HTTP client that supports .http files.
+# ============================================================
+
+### Variables
+@baseUrl = http://localhost:8080
+@adminAuth = Basic admin:admin123
+@userAuth = Basic user:password
+
+### ============================================================
+### PUBLIC ENDPOINTS (no authentication required)
+### ============================================================
+
+### Get property info
+GET {{baseUrl}}/api/public/property
+
+### Get equipment
+GET {{baseUrl}}/api/public/equipment
+
+### Get prices
+GET {{baseUrl}}/api/public/prices
+
+### Get availability
+GET {{baseUrl}}/api/public/availability?startDate=2026-07-20&endDate=2026-08-20
+
+### Create booking request (anonymous)
+POST {{baseUrl}}/api/public/booking-requests
+Content-Type: application/json
+
+{
+  "firstName": "Jean",
+  "lastName": "Dupont",
+  "email": "jean@example.com",
+  "phone": "0612345678",
+  "startDate": "2026-08-15",
+  "endDate": "2026-08-18",
+  "numberOfGuests": 2,
+  "bookingType": "NIGHT_STAY",
+  "message": "Sejour détente",
+  "agreedToRules": true
+}
+
+### ============================================================
+### USER ENDPOINTS (requires user authentication)
+### ============================================================
+
+### Login (get profile with Basic Auth)
+GET {{baseUrl}}/api/user/profile
+Authorization: {{userAuth}}
+
+### Get my bookings
+GET {{baseUrl}}/api/user/bookings
+Authorization: {{userAuth}}
+
+### ============================================================
+### ADMIN ENDPOINTS (requires admin authentication)
+### ============================================================
+
+### Get dashboard
+GET {{baseUrl}}/api/admin/dashboard
+Authorization: {{adminAuth}}
+
+### Get all bookings
+GET {{baseUrl}}/api/admin/bookings
+Authorization: {{adminAuth}}
+
+### Get users
+GET {{baseUrl}}/api/admin/users
+Authorization: {{adminAuth}}
+
+### Get prices
+GET {{baseUrl}}/api/admin/prices
+Authorization: {{adminAuth}}
+
+### Get equipment
+GET {{baseUrl}}/api/admin/equipment
+Authorization: {{adminAuth}}
+
+### Get availability blocks
+GET {{baseUrl}}/api/admin/availability-blocks
+Authorization: {{adminAuth}}
+
+### ============================================================
+### SECURITY TEST CASES
+### ============================================================
+
+### Should return 401 — no authentication (user endpoint)
+GET {{baseUrl}}/api/user/profile
+
+### Should return 401 — no authentication (admin endpoint)
+GET {{baseUrl}}/api/admin/dashboard
+
+### Should return 403 — user attempting to access admin endpoint
+GET {{baseUrl}}/api/admin/dashboard
+Authorization: {{userAuth}}

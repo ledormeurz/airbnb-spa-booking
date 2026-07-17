@@ -1,0 +1,136 @@
+.profile-page {
+  padding: 80px 0 60px;
+}
+
+.profile-content {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-card {
+  padding: 28px 32px;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-field:last-child {
+  border-bottom: none;
+}
+
+.profile-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+}
+
+.profile-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.badge-admin {
+  background: #E8F5E9;
+  color: #2E7D32;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-user {
+  background: #E3F2FD;
+  color: #1565C0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alert-icon {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.spa-card {
+  background: linear-gradient(135deg, #2D2D2D 0%, #4A3728 50%, #8B7355 100%);
+  border: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+.spa-card-content {
+  padding: 32px;
+  text-align: center;
+  position: relative;
+}
+
+.spa-card-icon {
+  font-size: 2.5rem;
+  color: var(--color-accent);
+  margin-bottom: 12px;
+}
+
+.spa-card-title {
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+
+.spa-card-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.spa-card .btn {
+  background: var(--color-accent);
+  color: var(--color-primary);
+  border-color: var(--color-accent);
+}
+
+.spa-card .btn:hover {
+  background: #d4bc9e;
+  border-color: #d4bc9e;
+  color: var(--color-primary);
+}
+
+@media (max-width: 640px) {
+  .profile-page {
+    padding: 60px 0 40px;
+  }
+
+  .profile-card {
+    padding: 20px;
+  }
+
+  .profile-field {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

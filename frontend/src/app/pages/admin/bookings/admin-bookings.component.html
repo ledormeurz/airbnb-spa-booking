@@ -1,0 +1,115 @@
+<div class="admin-bookings-page">
+  <div class="container">
+    <h1 class="section-title">Gestion des réservations</h1>
+    <p class="section-subtitle">Consultez et gérez toutes les réservations</p>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label class="filter-label">Statut</label>
+        <select class="form-control form-select" [(ngModel)]="filters.status" (change)="loadBookings()">
+          <option value="">Tous</option>
+          <option value="PENDING">En attente</option>
+          <option value="CONFIRMED">Confirmée</option>
+          <option value="REJECTED">Refusée</option>
+          <option value="CANCELLED">Annulée</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Type</label>
+        <select class="form-control form-select" [(ngModel)]="filters.bookingType" (change)="loadBookings()">
+          <option value="">Tous</option>
+          <option value="NIGHT_STAY">Nuitée</option>
+          <option value="EXTENDED_STAY">Séjour prolongé</option>
+          <option value="SPA_SESSION">Session spa</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Du</label>
+        <input type="date" class="form-control" [(ngModel)]="filters.startDate" (change)="loadBookings()" />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Au</label>
+        <input type="date" class="form-control" [(ngModel)]="filters.endDate" (change)="loadBookings()" />
+      </div>
+
+      <div class="filter-group filter-search">
+        <label class="filter-label">Client</label>
+        <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="filters.clientName" (keyup.enter)="loadBookings()" />
+      </div>
+    </div>
+
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else if (bookings.length === 0) {
+      <div class="empty-state">
+        <p>Aucune réservation trouvée.</p>
+      </div>
+    } @else {
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Dates</th>
+              <th>Type</th>
+              <th>Statut</th>
+              <th>Prix</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (booking of bookings; track booking.id) {
+              <tr>
+                <td>
+                  <div class="client-info">
+                    <span class="client-name">{{ booking.firstName }} {{ booking.lastName }}</span>
+                    <span class="client-email">{{ booking.email }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="dates-cell">{{ booking.startDate | date:'dd/MM/yyyy' }} — {{ booking.endDate | date:'dd/MM/yyyy' }}</span>
+                </td>
+                <td>{{ getBookingTypeLabel(booking.bookingType) }}</td>
+                <td>
+                  <span [class]="getStatusClass(booking.status)">{{ getStatusLabel(booking.status) }}</span>
+                </td>
+                <td>
+                  <span class="price-cell">{{ booking.totalPrice | number:'1.2-2' }} €</span>
+                </td>
+                <td>
+                  @if (booking.status === 'PENDING') {
+                    <div class="table-actions">
+                      <button type="button" class="btn btn-sm btn-success" (click)="updateStatus(booking, 'CONFIRMED')">
+                        Confirmer
+                      </button>
+                      <button type="button" class="btn btn-sm btn-danger" (click)="updateStatus(booking, 'REJECTED')">
+                        Refuser
+                      </button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

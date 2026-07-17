@@ -1,0 +1,104 @@
+.admin-calendar-page {
+  padding: 80px 0 60px;
+}
+
+.calendar-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.calendar-main {
+  min-width: 0;
+}
+
+.calendar-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.block-form-card,
+.blocks-list-card {
+  padding: 20px;
+}
+
+.block-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.block-form .form-group {
+  margin-bottom: 14px;
+}
+
+.blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.block-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #FFF8E1;
+  border: 1px solid #FFE082;
+  border-radius: var(--radius-sm);
+}
+
+.block-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.block-dates {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.block-reason {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+}
+
+.block-item .btn-danger {
+  padding: 4px 10px;
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.calendar-day.booked {
+  background: rgba(184, 84, 80, 0.1);
+  color: var(--color-error);
+}
+
+.calendar-day.blocked {
+  background: rgba(255, 140, 0, 0.1);
+  color: #cc7000;
+}
+
+.calendar-day.past {
+  background: transparent;
+  color: #ccc;
+}
+
+@media (max-width: 900px) {
+  .calendar-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-calendar-page {
+    padding: 60px 0 40px;
+  }
+}

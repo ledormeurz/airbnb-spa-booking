@@ -1,0 +1,73 @@
+<div class="admin-prices-page">
+  <div class="container">
+    <h1 class="section-title">Gestion des tarifs</h1>
+    <p class="section-subtitle">Modifiez les prix selon les types de séjour</p>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else {
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Type</th>
+              <th>Période</th>
+              <th>Prix (€)</th>
+              <th>Actif</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (price of prices; track price.id) {
+              <tr>
+                <td>
+                  <span class="price-name">{{ price.name }}</span>
+                </td>
+                <td>{{ getBookingTypeLabel(price.bookingType) }}</td>
+                <td>{{ getDayTypeLabel(price.dayType) }}</td>
+                <td>
+                  @if (editingId === price.id) {
+                    <input type="number" class="form-control price-input" [(ngModel)]="editPriceValue" min="0" step="0.01" />
+                  } @else {
+                    <span class="price-value">{{ price.price | number:'1.2-2' }} €</span>
+                  }
+                </td>
+                <td>
+                  <label class="toggle-switch">
+                    <input type="checkbox" [checked]="price.active" (change)="toggleActive(price)" />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </td>
+                <td>
+                  @if (editingId === price.id) {
+                    <div class="table-actions">
+                      <button type="button" class="btn btn-primary btn-sm" (click)="savePrice(price)">Sauvegarder</button>
+                      <button type="button" class="btn btn-ghost btn-sm" (click)="cancelEdit()">Annuler</button>
+                    </div>
+                  } @else {
+                    <button type="button" class="btn btn-ghost btn-sm" (click)="startEdit(price)">✎ Modifier</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

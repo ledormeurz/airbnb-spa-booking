@@ -1,0 +1,64 @@
+<div class="page-section">
+  <div class="container">
+    <h1 class="section-title">Galerie</h1>
+    <p class="section-subtitle">Découvrez Le Nid Spa en images</p>
+
+    <!-- Category Tabs -->
+    <div class="gallery-categories">
+      <button
+        class="gallery-category"
+        *ngFor="let category of categories"
+        [class.active]="activeCategory === category.id"
+        (click)="setCategory(category.id)"
+      >
+        {{ category.label }}
+      </button>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div class="gallery-grid">
+      <div
+        class="gallery-item"
+        *ngFor="let item of currentCategoryItems"
+        (click)="openLightbox(item)"
+      >
+        <div class="gallery-placeholder" [style.background]="item.gradient">
+          <span class="gallery-placeholder-icon">{{ item.icon }}</span>
+          <span class="gallery-placeholder-label">{{ item.label }}</span>
+        </div>
+        <div class="gallery-item-overlay">
+          <span>🔍</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="modal-overlay" *ngIf="lightboxOpen" (click)="closeLightbox()">
+  <div class="lightbox" (click)="$event.stopPropagation()">
+    <button class="lightbox-close" (click)="closeLightbox()">✕</button>
+
+    <button
+      class="lightbox-nav lightbox-prev"
+      (click)="prevLightbox()"
+      [class.disabled]="lightboxIndex === 0"
+    >‹</button>
+
+    <div class="lightbox-content">
+      <div class="lightbox-image" [style.background]="lightboxItem.gradient">
+        <span class="lightbox-image-icon">{{ lightboxItem.icon }}</span>
+        <span class="lightbox-image-label">{{ lightboxItem.label }}</span>
+      </div>
+      <p class="lightbox-caption">{{ lightboxItem.label }}</p>
+    </div>
+
+    <button
+      class="lightbox-nav lightbox-next"
+      (click)="nextLightbox()"
+      [class.disabled]="lightboxIndex === lightboxItems.length - 1"
+    >›</button>
+
+    <div class="lightbox-counter">{{ lightboxIndex + 1 }} / {{ lightboxItems.length }}</div>
+  </div>
+</div>

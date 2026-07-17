@@ -1,0 +1,89 @@
+<div class="admin-equipment-page">
+  <div class="container">
+    <div class="page-header">
+      <div>
+        <h1 class="section-title" style="text-align: left;">Gestion des équipements</h1>
+        <p class="section-subtitle" style="text-align: left;">Ajoutez, modifiez ou supprimez les équipements</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="openAddModal()">+ Ajouter</button>
+    </div>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else {
+      <div class="equipment-grid">
+        @for (equipment of equipmentList; track equipment.id) {
+          <div class="card equipment-card">
+            <div class="equipment-icon-wrapper">
+              <span class="equipment-icon">{{ equipment.icon }}</span>
+            </div>
+            <div class="equipment-info">
+              <h4 class="equipment-name">{{ equipment.name }}</h4>
+              <p class="equipment-description">{{ equipment.description }}</p>
+            </div>
+            <div class="equipment-meta">
+              <span class="badge" [class.badge-active]="equipment.active" [class.badge-inactive]="!equipment.active">
+                {{ equipment.active ? 'Actif' : 'Inactif' }}
+              </span>
+            </div>
+            <div class="equipment-actions">
+              <button type="button" class="btn btn-ghost btn-sm" (click)="openEditModal(equipment)">✎ Modifier</button>
+              <button type="button" class="btn btn-danger btn-sm" (click)="deleteEquipment(equipment.id)">Supprimer</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (showModal) {
+      <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>{{ editingId ? 'Modifier l\'équipement' : 'Ajouter un équipement' }}</h3>
+            <button type="button" class="modal-close" (click)="closeModal()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label" for="eqName">Nom *</label>
+              <input id="eqName" type="text" class="form-control" placeholder="Ex: Jacuzzi" [(ngModel)]="form.name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="eqDesc">Description *</label>
+              <textarea id="eqDesc" class="form-control form-textarea" placeholder="Description de l'équipement..." [(ngModel)]="form.description"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="eqIcon">Icône</label>
+              <input id="eqIcon" type="text" class="form-control" placeholder="Ex: 🛁" [(ngModel)]="form.icon" />
+            </div>
+            <div class="form-group">
+              <label class="form-checkbox">
+                <input type="checkbox" [(ngModel)]="form.active" />
+                <span>Équipement actif</span>
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+            <button type="button" class="btn btn-primary" (click)="saveEquipment()">
+              {{ editingId ? 'Enregistrer' : 'Ajouter' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

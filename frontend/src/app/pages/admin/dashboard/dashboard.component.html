@@ -1,0 +1,114 @@
+<div class="dashboard-page">
+  <div class="container">
+    <h1 class="section-title">Tableau de bord</h1>
+    <p class="section-subtitle">Vue d'ensemble de votre établissement</p>
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else if (dashboard) {
+      <div class="stats-grid">
+        <div class="card stat-card">
+          <div class="stat-icon stat-icon-pending">⏳</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ dashboard.pendingBookings }}</span>
+            <span class="stat-label">En attente</span>
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-icon stat-icon-confirmed">✓</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ dashboard.confirmedBookings }}</span>
+            <span class="stat-label">Confirmées</span>
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-icon stat-icon-revenue">€</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ dashboard.estimatedRevenue | number:'1.2-2' }} €</span>
+            <span class="stat-label">Revenu estimé</span>
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-icon stat-icon-occupancy">📊</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ dashboard.occupancyRate }}%</span>
+            <span class="stat-label">Taux d'occupation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-links">
+        <h3 class="quick-links-title">Accès rapide</h3>
+        <div class="quick-links-grid">
+          <a routerLink="/admin/bookings" class="card quick-link-card">
+            <span class="quick-link-icon">📋</span>
+            <span class="quick-link-text">Réservations</span>
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a routerLink="/admin/calendar" class="card quick-link-card">
+            <span class="quick-link-icon">📅</span>
+            <span class="quick-link-text">Calendrier</span>
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a routerLink="/admin/prices" class="card quick-link-card">
+            <span class="quick-link-icon">💰</span>
+            <span class="quick-link-text">Tarifs</span>
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a routerLink="/admin/equipment" class="card quick-link-card">
+            <span class="quick-link-icon">🛁</span>
+            <span class="quick-link-text">Équipements</span>
+            <span class="quick-link-arrow">→</span>
+          </a>
+          <a routerLink="/admin/users" class="card quick-link-card">
+            <span class="quick-link-icon">👥</span>
+            <span class="quick-link-text">Utilisateurs</span>
+            <span class="quick-link-arrow">→</span>
+          </a>
+        </div>
+      </div>
+
+      @if (dashboard.upcomingArrivals && dashboard.upcomingArrivals.length > 0) {
+        <div class="card upcoming-section">
+          <div class="card-header">
+            <h3>Arrivées à venir</h3>
+          </div>
+          <div class="upcoming-list">
+            @for (arrival of dashboard.upcomingArrivals; track arrival.id) {
+              <div class="upcoming-item">
+                <span class="upcoming-name">{{ arrival.firstName }} {{ arrival.lastName }}</span>
+                <span class="upcoming-date">{{ arrival.startDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (dashboard.upcomingDepartures && dashboard.upcomingDepartures.length > 0) {
+        <div class="card upcoming-section">
+          <div class="card-header">
+            <h3>Départs à venir</h3>
+          </div>
+          <div class="upcoming-list">
+            @for (departure of dashboard.upcomingDepartures; track departure.id) {
+              <div class="upcoming-item">
+                <span class="upcoming-name">{{ departure.firstName }} {{ departure.lastName }}</span>
+                <span class="upcoming-date">{{ departure.endDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

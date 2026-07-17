@@ -1,0 +1,51 @@
+<div class="page-section">
+  <div class="container">
+    <h1 class="section-title">Nos Tarifs</h1>
+    <p class="section-subtitle">Des formules adaptées à vos envies, toute l'année</p>
+
+    <!-- Loading -->
+    <div class="spinner" *ngIf="loading"></div>
+
+    <!-- Error -->
+    <div class="alert alert-error" *ngIf="error">
+      Impossible de charger les tarifs. Veuillez réessayer plus tard.
+    </div>
+
+    <!-- Prices -->
+    <ng-container *ngIf="!loading && !error">
+      <div *ngIf="prices.length === 0" class="alert alert-info">
+        Aucun tarif disponible pour le moment.
+      </div>
+
+      <div *ngFor="let key of getGroupKeys()" class="price-group">
+        <h2 class="price-group-title">{{ getBookingTypeLabel(key) }}</h2>
+        <div class="price-cards">
+          <div class="price-card" *ngFor="let price of groupedPrices[key]">
+            <div class="price-card-header">
+              <h3>{{ price.name }}</h3>
+            </div>
+            <div class="price-card-body">
+              <span class="price-day-type">{{ getDayTypeLabel(price.dayType) }}</span>
+              <div class="price-amount">
+                <span class="price-value">{{ price.price | currency:'EUR':'symbol':'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="card notes-card">
+        <h3>⚠️ Informations complémentaires</h3>
+        <ul class="notes-list">
+          <li>Les tarifs sont dégressifs pour les séjours de 3 nuits ou plus.</li>
+          <li>Les séances spa sont facturées à l'heure, avec un minimum de 1 heure.</li>
+          <li>Supplément de 30 € pour les arrivées après 21h.</li>
+          <li>Taxe de séjour : 1,50 € par personne et par nuit (non incluse).</li>
+          <li>Caution de 200 € demandée à l'arrivée (remboursée au départ).</li>
+          <li>Annulation gratuite jusqu'à 7 jours avant l'arrivée.</li>
+        </ul>
+      </div>
+    </ng-container>
+  </div>
+</div>

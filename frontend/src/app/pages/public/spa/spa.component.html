@@ -1,0 +1,61 @@
+<!-- Hero -->
+<section class="spa-hero">
+  <div class="spa-hero-content">
+    <h1>Espace Spa & Bien-être</h1>
+    <p>Un sanctuaire dédié à votre détente, au cœur de la nature</p>
+  </div>
+</section>
+
+<!-- Spa Sections -->
+<div class="page-section">
+  <div class="container">
+    <div class="spa-section-card" *ngFor="let section of sections">
+      <div class="spa-section-icon">{{ section.icon }}</div>
+      <div class="spa-section-content">
+        <h2>{{ section.title }}</h2>
+        <p>{{ section.description }}</p>
+        <ul class="spa-features">
+          <li *ngFor="let feature of section.features">{{ feature }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Safety Rules -->
+    <div class="card safety-card">
+      <h2>
+        <span>⚠️</span> Règles de sécurité
+      </h2>
+      <div class="safety-rules">
+        <div class="safety-rule" *ngFor="let rule of safetyRules">
+          <span class="safety-icon">{{ rule.icon }}</span>
+          <span>{{ rule.text }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hours Table -->
+    <div class="card hours-card">
+      <h2>
+        <span>🕐</span> Horaires d'accès au spa
+      </h2>
+      <table class="hours-table">
+        <tr *ngFor="let slot of hoursOfUse">
+          <td class="hours-day">{{ slot.day }}</td>
+          <td class="hours-time">{{ slot.hours }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Noise Guidelines -->
+    <div class="card noise-card">
+      <h2>
+        <span>🔇</span> Bonne conduite & nuisances sonores
+      </h2>
+      <ul class="noise-list">
+        <li *ngFor="let guideline of noiseGuidelines">
+          <span>•</span> {{ guideline }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

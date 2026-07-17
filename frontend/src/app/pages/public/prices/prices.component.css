@@ -1,0 +1,114 @@
+.price-group {
+  margin-bottom: 40px;
+}
+
+.price-group-title {
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--color-secondary);
+  display: inline-block;
+}
+
+.price-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.price-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+.price-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.price-card-header {
+  background: linear-gradient(135deg, var(--color-primary), #4A3728);
+  padding: 16px 20px;
+}
+
+.price-card-header h3 {
+  color: #fff;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.price-card-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.price-day-type {
+  display: inline-block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-light);
+  font-weight: 600;
+  margin-bottom: 8px;
+  background: var(--color-background);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.price-amount {
+  margin-top: 8px;
+}
+
+.price-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  font-family: var(--font-heading);
+}
+
+.notes-card {
+  margin-top: 32px;
+}
+
+.notes-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notes-list li {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.notes-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--color-secondary);
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .price-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .price-value {
+    font-size: 1.5rem;
+  }
+}

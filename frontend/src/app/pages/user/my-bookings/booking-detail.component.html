@@ -1,0 +1,102 @@
+<div class="booking-detail-page">
+  <div class="container">
+    <button type="button" class="btn btn-ghost btn-sm back-btn" (click)="goBack()">
+      ← Retour à mes réservations
+    </button>
+
+    <h1 class="section-title">Détail de la réservation</h1>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else if (booking) {
+      <div class="detail-card card">
+        <div class="detail-card-header">
+          <h3>Réservation #{{ booking.id }}</h3>
+          <span [class]="getStatusClass(booking.status)">{{ getStatusLabel(booking.status) }}</span>
+        </div>
+
+        <div class="detail-section">
+          <h4 class="detail-section-title">Informations client</h4>
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="detail-label">Prénom</span>
+              <span class="detail-value">{{ booking.firstName }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Nom</span>
+              <span class="detail-value">{{ booking.lastName }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Email</span>
+              <span class="detail-value">{{ booking.email }}</span>
+            </div>
+            @if (booking.phone) {
+              <div class="detail-field">
+                <span class="detail-label">Téléphone</span>
+                <span class="detail-value">{{ booking.phone }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4 class="detail-section-title">Détails du séjour</h4>
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="detail-label">Arrivée</span>
+              <span class="detail-value">{{ booking.startDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Départ</span>
+              <span class="detail-value">{{ booking.endDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Type</span>
+              <span class="detail-value">{{ getBookingTypeLabel(booking.bookingType) }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Invités</span>
+              <span class="detail-value">{{ booking.numberOfGuests }} personne{{ booking.numberOfGuests > 1 ? 's' : '' }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Prix total</span>
+              <span class="detail-value detail-price">{{ booking.totalPrice | number:'1.2-2' }} €</span>
+            </div>
+          </div>
+        </div>
+
+        @if (booking.message) {
+          <div class="detail-section">
+            <h4 class="detail-section-title">Message</h4>
+            <p class="detail-message">{{ booking.message }}</p>
+          </div>
+        }
+
+        @if (booking.status === 'PENDING') {
+          <div class="detail-actions">
+            <button type="button" class="btn btn-secondary" (click)="editBooking()">
+              Modifier
+            </button>
+            <button type="button" class="btn btn-danger" (click)="cancelBooking()">
+              Annuler la réservation
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

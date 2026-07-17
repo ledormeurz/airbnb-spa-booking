@@ -1,0 +1,137 @@
+<div class="profile-page">
+  <div class="container">
+    <h1 class="section-title">Mon Profil</h1>
+    <p class="section-subtitle">Gérez vos informations personnelles</p>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (user) {
+      <div class="profile-content">
+        <div class="card profile-card">
+          <div class="card-header">
+            <h3>Informations du compte</h3>
+          </div>
+          <div class="profile-info">
+            <div class="profile-field">
+              <span class="profile-label">Nom d'utilisateur</span>
+              <span class="profile-value">{{ user.username }}</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-label">Rôle</span>
+              <span class="profile-value">
+                <span class="badge" [class.badge-admin]="user.role === 'ROLE_ADMIN' || user.role === 'ADMIN'"
+                      [class.badge-user]="user.role !== 'ROLE_ADMIN' && user.role !== 'ADMIN'">
+                  {{ user.role === 'ROLE_ADMIN' || user.role === 'ADMIN' ? 'Administrateur' : 'Utilisateur' }}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card profile-card">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Informations personnelles</h3>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="toggleEdit()">
+              {{ editing ? 'Annuler' : 'Modifier' }}
+            </button>
+          </div>
+
+          @if (!editing) {
+            <div class="profile-info">
+              <div class="profile-field">
+                <span class="profile-label">Prénom</span>
+                <span class="profile-value">{{ user.firstName }}</span>
+              </div>
+              <div class="profile-field">
+                <span class="profile-label">Nom</span>
+                <span class="profile-value">{{ user.lastName }}</span>
+              </div>
+              <div class="profile-field">
+                <span class="profile-label">Email</span>
+                <span class="profile-value">{{ user.email }}</span>
+              </div>
+            </div>
+          }
+
+          @if (editing) {
+            <form [formGroup]="editForm" (ngSubmit)="onSave()" novalidate>
+              <div class="form-group">
+                <label class="form-label" for="firstName">Prénom</label>
+                <input
+                  id="firstName"
+                  type="text"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('firstName')?.touched && editForm.get('firstName')?.invalid"
+                  formControlName="firstName"
+                />
+                @if (editForm.get('firstName')?.touched && editForm.get('firstName')?.invalid) {
+                  <div class="form-error">Le prénom est requis</div>
+                }
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="lastName">Nom</label>
+                <input
+                  id="lastName"
+                  type="text"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('lastName')?.touched && editForm.get('lastName')?.invalid"
+                  formControlName="lastName"
+                />
+                @if (editForm.get('lastName')?.touched && editForm.get('lastName')?.invalid) {
+                  <div class="form-error">Le nom est requis</div>
+                }
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('email')?.touched && editForm.get('email')?.invalid"
+                  formControlName="email"
+                />
+                @if (editForm.get('email')?.touched && editForm.get('email')?.invalid) {
+                  @if (editForm.get('email')?.errors?.['required']) {
+                    <div class="form-error">L'email est requis</div>
+                  }
+                  @if (editForm.get('email')?.errors?.['email']) {
+                    <div class="form-error">Veuillez entrer un email valide</div>
+                  }
+                }
+              </div>
+              <button type="submit" class="btn btn-primary" [disabled]="loading">
+                @if (loading) {
+                  <span class="spinner spinner-sm"></span>
+                }
+                {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
+              </button>
+            </form>
+          }
+        </div>
+
+        <div class="card spa-card">
+          <div class="spa-card-content">
+            <div class="spa-card-icon">✦</div>
+            <h3 class="spa-card-title">Accès Premium Spa</h3>
+            <p class="spa-card-text">Profitez d'un accès exclusif à notre espace spa avec jacuzzi privatif, sauna et espace de relaxation. Réservez votre séjour et offrez-vous une expérience de bien-être unique.</p>
+            <a routerLink="/spa" class="btn btn-primary btn-sm">Découvrir le spa</a>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="spinner"></div>
+    }
+  </div>
+</div>

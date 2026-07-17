@@ -1,0 +1,103 @@
+<nav class="navbar" role="navigation">
+  <div class="navbar-inner">
+    <a routerLink="/" class="navbar-logo" (click)="closeMenus()">
+      <span class="logo-icon">✦</span>
+      Le Nid Spa
+    </a>
+
+    <button class="hamburger" (click)="toggleMobileMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="navbar-links" [class.open]="showMobileMenu">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenus()">Accueil</a>
+      <a routerLink="/property" routerLinkActive="active" (click)="closeMenus()">Le Logement</a>
+      <a routerLink="/spa" routerLinkActive="active" (click)="closeMenus()">Spa</a>
+      <a routerLink="/gallery" routerLinkActive="active" (click)="closeMenus()">Galerie</a>
+      <a routerLink="/prices" routerLinkActive="active" (click)="closeMenus()">Tarifs</a>
+      <a routerLink="/availability" routerLinkActive="active" (click)="closeMenus()">Disponibilités</a>
+      <a routerLink="/booking" routerLinkActive="active" (click)="closeMenus()">Réserver</a>
+
+      @if (!currentUser) {
+        <a routerLink="/login" routerLinkActive="active" class="nav-login-btn" (click)="closeMenus()">Connexion</a>
+      }
+
+      @if (currentUser) {
+        <div class="navbar-user">
+          <button class="navbar-user-btn" (click)="toggleUserMenu()">
+            <span>👤</span>
+            <span>{{ currentUser.firstName || currentUser.username }}</span>
+            <span>▼</span>
+          </button>
+
+          @if (showUserMenu) {
+            <div class="navbar-dropdown">
+              <a routerLink="/user/profile" (click)="closeMenus()">Mon Profil</a>
+              <a routerLink="/user/bookings" (click)="closeMenus()">Mes Réservations</a>
+              @if (isAdmin) {
+                <div class="divider"></div>
+                <a routerLink="/admin/dashboard" (click)="closeMenus()">Tableau de bord</a>
+                <a routerLink="/admin/bookings" (click)="closeMenus()">Gestion réservations</a>
+                <a routerLink="/admin/calendar" (click)="closeMenus()">Calendrier</a>
+                <a routerLink="/admin/prices" (click)="closeMenus()">Tarifs</a>
+                <a routerLink="/admin/equipment" (click)="closeMenus()">Équipements</a>
+                <a routerLink="/admin/users" (click)="closeMenus()">Utilisateurs</a>
+              }
+              <div class="divider"></div>
+              <button (click)="logout()">Déconnexion</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</nav>
+
+<main>
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <h4>✦ Le Nid Spa</h4>
+      <p>Résidence &amp; Bien-être – Un havre de paix au cœur de la nature. Profitez de notre studio tout équipé avec accès privé au jacuzzi, sauna et espace de relaxation.</p>
+      <p style="margin-top: 12px;">
+        <a href="mailto:contact&#64;lenidspa.fr">contact&#64;lenidspa.fr</a><br>
+        <a href="tel:+33123456789">+33 1 23 45 67 89</a>
+      </p>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <a routerLink="/">Accueil</a><br>
+      <a routerLink="/property">Le Logement</a><br>
+      <a routerLink="/spa">Spa &amp; Bien-être</a><br>
+      <a routerLink="/gallery">Galerie</a><br>
+      <a routerLink="/prices">Tarifs</a><br>
+      <a routerLink="/availability">Disponibilités</a><br>
+      <a routerLink="/booking">Réserver</a>
+    </div>
+    <div>
+      <h4>Services</h4>
+      <a routerLink="/spa">Jacuzzi privatif</a><br>
+      <a routerLink="/spa">Sauna</a><br>
+      <a routerLink="/spa">Douche extérieure</a><br>
+      <a routerLink="/spa">Espace détente</a><br>
+      <a routerLink="/property">Studio équipé</a><br>
+      <a routerLink="/property">Wifi gratuit</a>
+    </div>
+    <div>
+      <h4>Horaires</h4>
+      <p>Arrivée : à partir de 16h</p>
+      <p>Départ : avant 11h</p>
+      <p style="margin-top: 12px;">Spa accessible<br>de 10h à 22h</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    &copy; {{currentYear}} Le Nid Spa. Tous droits réservés. &mdash; Résidence &amp; Bien-être
+  </div>
+</footer>
+
+@if (showMobileMenu) {
+  <div class="nav-overlay" (click)="closeMenus()"></div>
+}

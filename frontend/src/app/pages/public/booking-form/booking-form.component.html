@@ -1,0 +1,207 @@
+<div class="booking-page">
+  <div class="container">
+    <div class="booking-header">
+      <h1 class="section-title">Demande de Réservation</h1>
+      <p class="section-subtitle">Remplissez le formulaire ci-dessous pour réserver votre séjour au Le Nid Spa</p>
+    </div>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    <div class="booking-form-card">
+      <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="firstName">Prénom *</label>
+            <input
+              id="firstName"
+              type="text"
+              class="form-control"
+              [class.is-invalid]="f['firstName'].touched && f['firstName'].invalid"
+              formControlName="firstName"
+              placeholder="Votre prénom"
+            />
+            @if (f['firstName'].touched && f['firstName'].invalid) {
+              <div class="form-error">Le prénom est requis</div>
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="lastName">Nom *</label>
+            <input
+              id="lastName"
+              type="text"
+              class="form-control"
+              [class.is-invalid]="f['lastName'].touched && f['lastName'].invalid"
+              formControlName="lastName"
+              placeholder="Votre nom"
+            />
+            @if (f['lastName'].touched && f['lastName'].invalid) {
+              <div class="form-error">Le nom est requis</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="email">Email *</label>
+            <input
+              id="email"
+              type="email"
+              class="form-control"
+              [class.is-invalid]="f['email'].touched && f['email'].invalid"
+              formControlName="email"
+              placeholder="votre@email.com"
+            />
+            @if (f['email'].touched && f['email'].invalid) {
+              @if (f['email'].errors?.['required']) {
+                <div class="form-error">L'email est requis</div>
+              }
+              @if (f['email'].errors?.['email']) {
+                <div class="form-error">Veuillez entrer un email valide</div>
+              }
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="phone">Téléphone *</label>
+            <input
+              id="phone"
+              type="tel"
+              class="form-control"
+              [class.is-invalid]="f['phone'].touched && f['phone'].invalid"
+              formControlName="phone"
+              placeholder="+33 6 XX XX XX XX"
+            />
+            @if (f['phone'].touched && f['phone'].invalid) {
+              <div class="form-error">Le téléphone est requis</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="startDate">Date d'arrivée *</label>
+            <input
+              id="startDate"
+              type="date"
+              class="form-control"
+              [class.is-invalid]="f['startDate'].touched && f['startDate'].invalid"
+              formControlName="startDate"
+            />
+            @if (f['startDate'].touched && f['startDate'].invalid) {
+              @if (f['startDate'].errors?.['required']) {
+                <div class="form-error">La date d'arrivée est requise</div>
+              }
+              @if (f['startDate'].errors?.['pastDate']) {
+                <div class="form-error">La date doit être dans le futur</div>
+              }
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="endDate">Date de départ *</label>
+            <input
+              id="endDate"
+              type="date"
+              class="form-control"
+              [class.is-invalid]="f['endDate'].touched && f['endDate'].invalid"
+              formControlName="endDate"
+            />
+            @if (f['endDate'].touched && f['endDate'].invalid) {
+              @if (f['endDate'].errors?.['required']) {
+                <div class="form-error">La date de départ est requise</div>
+              }
+              @if (f['endDate'].errors?.['pastDate']) {
+                <div class="form-error">La date doit être dans le futur</div>
+              }
+            }
+          </div>
+        </div>
+
+        @if (bookingForm.errors?.['endBeforeStart'] && f['endDate'].touched) {
+          <div class="form-error" style="margin-bottom: 16px;">
+            La date de fin doit être après la date de début
+          </div>
+        }
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="numberOfGuests">Nombre de voyageurs *</label>
+            <input
+              id="numberOfGuests"
+              type="number"
+              class="form-control"
+              [class.is-invalid]="f['numberOfGuests'].touched && f['numberOfGuests'].invalid"
+              formControlName="numberOfGuests"
+              min="1"
+              max="10"
+            />
+            @if (f['numberOfGuests'].touched && f['numberOfGuests'].invalid) {
+              @if (f['numberOfGuests'].errors?.['required']) {
+                <div class="form-error">Le nombre de voyageurs est requis</div>
+              }
+              @if (f['numberOfGuests'].errors?.['min']) {
+                <div class="form-error">Minimum 1 voyageur</div>
+              }
+              @if (f['numberOfGuests'].errors?.['max']) {
+                <div class="form-error">Maximum 10 voyageurs</div>
+              }
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bookingType">Type de réservation *</label>
+            <select
+              id="bookingType"
+              class="form-control form-select"
+              [class.is-invalid]="f['bookingType'].touched && f['bookingType'].invalid"
+              formControlName="bookingType"
+            >
+              @for (type of bookingTypes; track type.value) {
+                <option [value]="type.value">{{ type.label }}</option>
+              }
+            </select>
+            @if (f['bookingType'].touched && f['bookingType'].invalid) {
+              <div class="form-error">Veuillez sélectionner un type</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="message">Message</label>
+          <textarea
+            id="message"
+            class="form-control form-textarea"
+            formControlName="message"
+            placeholder="Vos demandes spéciales, allergies, etc."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-checkbox">
+            <input type="checkbox" formControlName="agreedToRules" />
+            <span>J'accepte les conditions générales et la politique d'annulation *</span>
+          </label>
+          @if (f['agreedToRules'].touched && f['agreedToRules'].invalid) {
+            <div class="form-error">Vous devez accepter les conditions</div>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block" [disabled]="loading">
+          @if (loading) {
+            <span class="spinner spinner-sm"></span>
+          }
+          {{ loading ? 'Envoi en cours...' : 'Envoyer ma demande' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

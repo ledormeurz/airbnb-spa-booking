@@ -1,0 +1,60 @@
+<section class="hero">
+  <div class="hero-content">
+    <h1>Le Nid Spa</h1>
+    <p>Un havre de paix où luxe, nature et bien-être se rencontrent. Découvrez notre studio d'exception avec accès privé au jacuzzi et au sauna, niché au cœur d'un écrin de verdure.</p>
+    <div class="hero-cta">
+      <a routerLink="/availability" class="btn btn-primary btn-lg">Voir les disponibilités</a>
+      <a routerLink="/booking" class="btn btn-secondary btn-lg">Réserver maintenant</a>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container">
+    <h2 class="section-title">Une expérience unique</h2>
+    <p class="section-subtitle">Découvrez tous les avantages de notre résidence haut de gamme</p>
+
+    <div class="features-grid">
+      @for (feature of features; track feature.title) {
+        <div class="card feature-card">
+          <div class="feature-icon">{{ feature.icon }}</div>
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.desc }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="page-section" style="background: var(--color-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">
+  <div class="container" style="text-align: center; max-width: 800px;">
+    <h2 class="section-title">Prêt à vivre l'expérience Le Nid Spa ?</h2>
+    <p class="section-subtitle">Réservez dès maintenant votre séjour et laissez-vous porter par la sérénité des lieux.</p>
+    <div style="margin-top: 32px;">
+      <a routerLink="/booking" class="btn btn-primary btn-lg">Réserver mon séjour</a>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container">
+    <h2 class="section-title">Ce que nos hôtes disent</h2>
+    <div class="grid grid-3" style="margin-top: 32px;">
+      <div class="card" style="text-align: center;">
+        <p style="font-size: 2rem; margin-bottom: 8px;">⭐⭐⭐⭐⭐</p>
+        <p style="font-style: italic; color: var(--color-text-light);">"Un séjour formidable ! Le jacuzzi sous les étoiles était magique. Le studio est très bien équipé et décoré avec goût."</p>
+        <p style="margin-top: 12px; font-weight: 600;">— Sophie M.</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <p style="font-size: 2rem; margin-bottom: 8px;">⭐⭐⭐⭐⭐</p>
+        <p style="font-style: italic; color: var(--color-text-light);">"Le calme absolu, le sauna, la nature environnante... Tout était parfait pour une escapade romantique."</p>
+        <p style="margin-top: 12px; font-weight: 600;">— Thomas &amp; Julie</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <p style="font-size: 2rem; margin-bottom: 8px;">⭐⭐⭐⭐⭐</p>
+        <p style="font-style: italic; color: var(--color-text-light);">"Une pépite ! L'accueil est chaleureux, le cadre est idyllique. Nous reviendrons sans hésitation."</p>
+        <p style="margin-top: 12px; font-weight: 600;">— Marie L.</p>
+      </div>
+    </div>
+  </div>
+</section>

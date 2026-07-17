@@ -1,0 +1,88 @@
+<div class="page-section">
+  <div class="container">
+    <h1 class="section-title">Disponibilités</h1>
+    <p class="section-subtitle">Sélectionnez vos dates pour réserver votre séjour</p>
+
+    <!-- Calendar -->
+    <div class="calendar">
+      <!-- Header -->
+      <div class="calendar-header">
+        <h3>{{ monthLabel }}</h3>
+        <div class="calendar-nav">
+          <button (click)="prevMonth()">←</button>
+          <button (click)="nextMonth()">→</button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="spinner spinner-sm" *ngIf="loading" style="margin: 20px auto;"></div>
+
+      <!-- Grid -->
+      <ng-container *ngIf="!loading">
+        <div class="calendar-grid">
+          <!-- Day headers -->
+          <div class="calendar-day-header" *ngFor="let header of daysHeader">
+            {{ header }}
+          </div>
+
+          <!-- Empty cells for offset -->
+          <div class="calendar-day empty" *ngFor="let _ of getEmptyDaysArray()"></div>
+
+          <!-- Day cells -->
+          <div
+            class="calendar-day"
+            *ngFor="let dayNum of getDaysArray()"
+            [class.available]="getDayForDate(dayNum)?.status === 'available'"
+            [class.booked]="getDayForDate(dayNum)?.status === 'booked'"
+            [class.blocked]="getDayForDate(dayNum)?.status === 'blocked'"
+            [class.past]="getDayForDate(dayNum)?.status === 'past'"
+            [class.selected]="isSelected(dayNum)"
+            [class.in-range]="isInRange(dayNum)"
+            [class.range-start]="isRangeStart(dayNum)"
+            [class.range-end]="isRangeEnd(dayNum)"
+            (click)="onDayClick(dayNum)"
+          >
+            {{ dayNum }}
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="calendar-legend">
+          <div class="calendar-legend-item" *ngFor="let item of legendItems">
+            <span class="calendar-legend-dot" [style.background]="item.color"></span>
+            {{ item.label }}
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Selection Info -->
+    <div class="card selection-card" *ngIf="selectedRangeInfo.start">
+      <h3>Votre sélection</h3>
+      <div class="selection-details">
+        <div class="selection-row">
+          <span>Arrivée :</span>
+          <strong>{{ selectedRangeInfo.start }}</strong>
+        </div>
+        <div class="selection-row" *ngIf="selectedRangeInfo.end">
+          <span>Départ :</span>
+          <strong>{{ selectedRangeInfo.end }}</strong>
+        </div>
+        <div class="selection-row" *ngIf="selectedRangeInfo.end">
+          <span>Nombre de nuits :</span>
+          <strong>{{ selectedRangeInfo.nights }}</strong>
+        </div>
+      </div>
+      <button
+        class="btn btn-primary btn-block mt-3"
+        [disabled]="!selectedRangeInfo.valid"
+        (click)="goToBooking()"
+      >
+        Réserver maintenant
+      </button>
+      <p class="selection-hint" *ngIf="!selectedRangeInfo.end">
+        Sélectionnez une date de départ
+      </p>
+    </div>
+  </div>
+</div>

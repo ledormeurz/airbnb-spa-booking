@@ -1,0 +1,128 @@
+<div class="admin-users-page">
+  <div class="container">
+    <div class="page-header">
+      <div>
+        <h1 class="section-title" style="text-align: left;">Gestion des utilisateurs</h1>
+        <p class="section-subtitle" style="text-align: left;">Gérez les comptes utilisateurs et administrateurs</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="openCreateModal()">+ Créer</button>
+    </div>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else {
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nom d'utilisateur</th>
+              <th>Prénom</th>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>État</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users; track user.id) {
+              <tr>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>{{ user.firstName }}</td>
+                <td>{{ user.lastName }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <span [class]="getRoleBadge(user.role)">{{ getRoleLabel(user.role) }}</span>
+                </td>
+                <td>
+                  @if (user.enabled) {
+                    <span class="status-indicator status-enabled">Actif</span>
+                  } @else {
+                    <span class="status-indicator status-disabled">Inactif</span>
+                  }
+                </td>
+                <td>
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="openEditModal(user)">✎ Modifier</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (showModal) {
+      <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>{{ editingId ? 'Modifier l\'utilisateur' : 'Créer un utilisateur' }}</h3>
+            <button type="button" class="modal-close" (click)="closeModal()">×</button>
+          </div>
+          <div class="modal-body">
+            @if (!editingId) {
+              <div class="form-group">
+                <label class="form-label" for="uUsername">Nom d'utilisateur *</label>
+                <input id="uUsername" type="text" class="form-control" placeholder="Identifiant" [(ngModel)]="form.username" />
+              </div>
+            }
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="uFirstName">Prénom *</label>
+                <input id="uFirstName" type="text" class="form-control" placeholder="Prénom" [(ngModel)]="form.firstName" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="uLastName">Nom *</label>
+                <input id="uLastName" type="text" class="form-control" placeholder="Nom" [(ngModel)]="form.lastName" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="uEmail">Email *</label>
+              <input id="uEmail" type="email" class="form-control" placeholder="email@exemple.fr" [(ngModel)]="form.email" />
+            </div>
+            @if (!editingId) {
+              <div class="form-group">
+                <label class="form-label" for="uPassword">Mot de passe *</label>
+                <input id="uPassword" type="password" class="form-control" placeholder="Mot de passe" [(ngModel)]="form.password" />
+              </div>
+            }
+            <div class="form-group">
+              <label class="form-label" for="uRole">Rôle</label>
+              <select id="uRole" class="form-control form-select" [(ngModel)]="form.role">
+                <option value="USER">Utilisateur</option>
+                <option value="ADMIN">Administrateur</option>
+              </select>
+            </div>
+            @if (editingId) {
+              <div class="form-group">
+                <label class="form-checkbox">
+                  <input type="checkbox" [(ngModel)]="form.enabled" />
+                  <span>Compte actif</span>
+                </label>
+              </div>
+            }
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+            <button type="button" class="btn btn-primary" (click)="saveUser()">
+              {{ editingId ? 'Enregistrer' : 'Créer' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

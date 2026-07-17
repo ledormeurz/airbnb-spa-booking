@@ -1,0 +1,99 @@
+<div class="page-section">
+  <div class="container">
+    <!-- Content -->
+    <ng-container *ngIf="property">
+      <!-- Header -->
+      <div class="property-header">
+        <h1 class="property-title">{{ property.name }}</h1>
+        <p class="property-desc">{{ property.description }}</p>
+      </div>
+
+      <!-- Key Info Grid -->
+      <div class="info-grid">
+        <div class="info-card">
+          <span class="info-icon">👥</span>
+          <span class="info-label">Voyageurs</span>
+          <span class="info-value">Jusqu'à {{ property.maxGuests }} personnes</span>
+        </div>
+        <div class="info-card">
+          <span class="info-icon">🛏️</span>
+          <span class="info-label">Literie</span>
+          <span class="info-value">{{ property.beds }} lit(s)</span>
+        </div>
+        <div class="info-card">
+          <span class="info-icon">🚿</span>
+          <span class="info-label">Salle de bain</span>
+          <span class="info-value">{{ property.bathrooms }} salle(s)</span>
+        </div>
+        <div class="info-card">
+          <span class="info-icon">🍳</span>
+          <span class="info-label">Cuisine</span>
+          <span class="info-value">Kitchenette équipée</span>
+        </div>
+      </div>
+
+      <!-- Check-in/Check-out -->
+      <div class="check-info">
+        <div class="check-card">
+          <span class="check-icon">📥</span>
+          <div>
+            <strong>Arrivée</strong>
+            <p>À partir de {{ property.checkInTime }}</p>
+          </div>
+        </div>
+        <div class="check-card">
+          <span class="check-icon">📤</span>
+          <div>
+            <strong>Départ</strong>
+            <p>Avant {{ property.checkOutTime }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amenities -->
+      <div class="card property-card">
+        <h2>Équipements & Services</h2>
+        <div class="amenities-grid">
+          <div class="amenity-item" *ngFor="let amenity of property.amenities">
+            <span class="amenity-check">✓</span>
+            <span>{{ amenity }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- House Rules -->
+      <div class="card property-card">
+        <h2>Règlement intérieur</h2>
+        <div class="rules-list">
+          <div class="rule-item" *ngFor="let rule of property.rules">
+            <span>•</span>
+            <span>{{ rule }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Info -->
+      <div class="card property-card">
+        <h2>Informations complémentaires</h2>
+        <div class="additional-info">
+          <div class="info-row">
+            <span>🔑</span>
+            <span><strong>Entrée indépendante</strong> — Accès privé par porte latérale avec code numérique.</span>
+          </div>
+          <div class="info-row">
+            <span>📶</span>
+            <span><strong>WiFi haut débit</strong> — Fibre optique, idéal pour le télétravail.</span>
+          </div>
+          <div class="info-row">
+            <span>📺</span>
+            <span><strong>TV connectée</strong> — Smart TV 55" avec Netflix, Prime Video et YouTube.</span>
+          </div>
+          <div class="info-row">
+            <span>🅿️</span>
+            <span><strong>Parking privé</strong> — Place de parking gratuite devant le studio.</span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

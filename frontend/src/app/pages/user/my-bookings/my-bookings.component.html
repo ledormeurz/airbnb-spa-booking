@@ -1,0 +1,65 @@
+<div class="my-bookings-page">
+  <div class="container">
+    <h1 class="section-title">Mes Réservations</h1>
+    <p class="section-subtitle">Consultez et gérez vos réservations</p>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (loading) {
+      <div class="spinner"></div>
+    } @else if (bookings.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>Aucune réservation pour le moment</h3>
+        <p>Vous n'avez pas encore effectué de réservation. Découvrez notre hébergement et réservez votre séjour.</p>
+        <a routerLink="/booking" class="btn btn-primary">Réserver maintenant</a>
+      </div>
+    } @else {
+      <div class="bookings-grid">
+        @for (booking of bookings; track booking.id) {
+          <div class="card booking-card" (click)="viewBooking(booking.id)">
+            <div class="booking-card-header">
+              <span class="booking-dates">
+                <span class="date-range">{{ booking.startDate | date:'dd/MM/yyyy' }} — {{ booking.endDate | date:'dd/MM/yyyy' }}</span>
+              </span>
+              <span [class]="getStatusClass(booking.status)">{{ getStatusLabel(booking.status) }}</span>
+            </div>
+            <div class="booking-card-body">
+              <div class="booking-info-row">
+                <span class="booking-info-label">Type</span>
+                <span class="booking-info-value">{{ getBookingTypeLabel(booking.bookingType) }}</span>
+              </div>
+              <div class="booking-info-row">
+                <span class="booking-info-label">Invités</span>
+                <span class="booking-info-value">{{ booking.numberOfGuests }} personne{{ booking.numberOfGuests > 1 ? 's' : '' }}</span>
+              </div>
+              <div class="booking-info-row">
+                <span class="booking-info-label">Prix total</span>
+                <span class="booking-info-value booking-price">{{ booking.totalPrice | number:'1.2-2' }} €</span>
+              </div>
+            </div>
+            @if (booking.status === 'PENDING') {
+              <div class="booking-card-footer">
+                <button type="button" class="btn btn-danger btn-sm" (click)="cancelBooking(booking, $event)">
+                  Annuler
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
