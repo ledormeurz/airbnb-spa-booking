@@ -27,7 +27,7 @@ public class UserController {
     }
 
     private User getCurrentUser(Authentication authentication) {
-        return userService.findByUsername(authentication.getName());
+        return userService.findByLogin(authentication.getName());
     }
 
     @GetMapping("/profile")

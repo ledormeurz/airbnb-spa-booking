@@ -6,6 +6,7 @@ import com.airbnbspa.service.AvailabilityService;
 import com.airbnbspa.service.BookingService;
 import com.airbnbspa.service.EquipmentService;
 import com.airbnbspa.service.PriceCalculationService;
+import com.airbnbspa.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -25,15 +26,18 @@ public class PublicController {
     private final PriceCalculationService priceCalculationService;
     private final BookingService bookingService;
     private final AvailabilityService availabilityService;
+    private final UserService userService;
 
     public PublicController(EquipmentService equipmentService,
                             PriceCalculationService priceCalculationService,
                             BookingService bookingService,
-                            AvailabilityService availabilityService) {
+                            AvailabilityService availabilityService,
+                            UserService userService) {
         this.equipmentService = equipmentService;
         this.priceCalculationService = priceCalculationService;
         this.bookingService = bookingService;
         this.availabilityService = availabilityService;
+        this.userService = userService;
     }
 
     @GetMapping("/property")
@@ -104,5 +108,15 @@ public class PublicController {
         // Anonymous booking - user is null
         BookingResponseDTO response = bookingService.createBooking(requestDTO, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UserDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
+        UserDTO created = userService.register(
+                request.getEmail(),
+                request.getPassword(),
+                request.getFirstName(),
+                request.getLastName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 }
