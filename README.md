@@ -212,6 +212,7 @@ airbnb-spa-booking/
 | `GET` | `/api/public/prices` | Grille tarifaire (prix par saison / type de séjour) |
 | `GET` | `/api/public/availability` | Disponibilités sur une période (paramètres : `startDate`, `endDate`) |
 | `POST` | `/api/public/booking-requests` | Créer une demande de réservation (anonyme) |
+| `POST` | `/api/public/register` | Créer un compte utilisateur (email + mot de passe) |
 
 ### Endpoints utilisateur (authentification Basic requise)
 
@@ -235,38 +236,52 @@ airbnb-spa-booking/
 
 ## 🔐 Authentification
 
-Ce projet utilise **HTTP Basic Authentication**.
+Ce projet utilise **HTTP Basic Authentication**, avec l'**email** comme identifiant de connexion.
 
 ### Comment ça fonctionne
 
-1. Le client envoie ses identifiants (`username:password`) encodés en **Base64** dans l'en-tête HTTP `Authorization`.
-2. Le serveur décode les identifiants et vérifie leur validité.
-3. Si valides, la requête est traitée avec le rôle de l'utilisateur (`USER` ou `ADMIN`).
-4. Si invalides, le serveur répond avec un statut `401 Unauthorized`.
+1. L'identifiant de connexion est l'**adresse email** de l'utilisateur (et non un nom d'utilisateur).
+2. Le client envoie ses identifiants (`email:password`) encodés en **Base64** dans l'en-tête HTTP `Authorization`.
+3. Le serveur recherche l'utilisateur par email, décode les identifiants et vérifie leur validité.
+4. Si valides, la requête est traitée avec le rôle de l'utilisateur (`USER` ou `ADMIN`).
+5. Si invalides, le serveur répond avec un statut `401 Unauthorized`.
 
-### Exemple
+### Créer un compte (inscription)
+
+N'importe qui peut créer un compte `USER` en libre-service via l'endpoint public `POST /api/public/register` :
 
 ```bash
-# Encoder les identifiants
-echo -n "admin:admin123" | base64
-# Résultat : YWRtaW46YWRtaW4xMjM=
-
-# Envoyer la requête
-curl -H "Authorization: Basic YWRtaW46YWRtaW4xMjM=" http://localhost:8080/api/admin/dashboard
+curl -X POST http://localhost:8080/api/public/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"jean@example.com","password":"secret123","firstName":"Jean","lastName":"Dupont"}'
 ```
 
-Ou plus simplement :
+Le mot de passe doit contenir au moins 6 caractères. L'email doit être unique.
+
+### Exemple de connexion (admin)
 
 ```bash
-curl -u admin:admin123 http://localhost:8080/api/admin/dashboard
+# Encoder les identifiants (email:password)
+echo -n "admin@airbnbspa.com:admin123" | base64
+
+# Envoyer la requête avec l'en-tête encodé
+curl -H "Authorization: Basic <chaîne_encodée>" http://localhost:8080/api/admin/dashboard
+```
+
+Ou plus simplement, en laissant curl encoder pour vous :
+
+```bash
+curl -u admin@airbnbspa.com:admin123 http://localhost:8080/api/admin/dashboard
 ```
 
 ### Rôles
 
-| Rôle | Compte démo | Accès |
-|------|------------|-------|
-| `ADMIN` | `admin` / `admin123` | Tous les endpoints admin + utilisateur + publics |
-| `USER` | `user1` / `password123` | Endpoints utilisateur + publics uniquement |
+| Rôle | Compte démo (email / mot de passe) | Accès |
+|------|------------------------------------|-------|
+| `ADMIN` | `admin@airbnbspa.com` / `admin123` | Tous les endpoints admin + utilisateur + publics |
+| `USER` | `john@example.com` / `password123` | Endpoints utilisateur + publics uniquement |
+
+> **ℹ️ Note :** L'email de l'administrateur est `admin@airbnbspa.com`. Le mot de passe correspond à la variable `ADMIN_PASSWORD` (par défaut `admin123`) définie au premier démarrage.
 
 > **⚠️ ATTENTION :** Changez impérativement les mots de passe par défaut avant toute mise en production.
 
@@ -281,7 +296,7 @@ curl -u admin:admin123 http://localhost:8080/api/admin/dashboard
 HTTP Basic Auth se contente d'encoder les identifiants en **Base64**, ce n'est PAS du chiffrement. Le Base64 est un simple encodage réversible instantanément. Un attaquant qui intercepte le trafic réseau peut décoder les identifiants en quelques secondes.
 
 ```
-username:password  ──encodage Base64──►  YWRtaW46YWRtaW4xMjM=  ──décodage──►  username:password
+email:password  ──encodage Base64──►  (chaîne encodée)  ──décodage──►  email:password
 ```
 
 ### 2. HTTPS est OBLIGATOIRE en production
@@ -347,12 +362,13 @@ Une fois que l'utilisateur a fourni ses identifiants, le navigateur les renvoie 
 
 ## 👤 Comptes de démonstration
 
-| Rôle | Identifiant | Mot de passe |
-|------|-------------|-------------|
-| **Administrateur** | `admin` | `admin123` |
-| **Utilisateur** | `user1` | `password123` |
+| Rôle | Email (identifiant de connexion) | Mot de passe |
+|------|----------------------------------|-------------|
+| **Administrateur** | `admin@airbnbspa.com` | `admin123` |
+| **Utilisateur** | `john@example.com` | `password123` |
+| **Utilisateur** | `jane@example.com` | `password456` |
 
-> Ces comptes sont créés automatiquement au premier démarrage de l'application via un seed dans la base de données. Changez les mots de passe dès que possible en production.
+> Ces comptes sont créés automatiquement au premier démarrage de l'application via un seed dans la base de données. La connexion se fait avec l'**email** et le mot de passe. Changez les mots de passe dès que possible en production.
 
 ---
 
