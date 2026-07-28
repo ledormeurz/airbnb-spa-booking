@@ -7,7 +7,7 @@ import { Equipment } from '../models/equipment.model';
 import { AvailabilityBlock } from '../models/availability.model';
 import { Dashboard } from '../models/dashboard.model';
 import { PropertyInfo } from '../models/property-info.model';
-import { User } from '../models/user.model';
+import { User, RegisterRequest } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -40,6 +40,10 @@ export class ApiService {
 
   createBooking(request: BookingRequest): Observable<Booking> {
     return this.http.post<Booking>(`${this.apiUrl}/public/booking-requests`, request);
+  }
+
+  register(request: RegisterRequest): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/public/register`, request);
   }
 
   // ==================== USER ====================

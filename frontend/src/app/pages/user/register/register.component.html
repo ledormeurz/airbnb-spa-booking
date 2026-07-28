@@ -1,0 +1,125 @@
+<div class="register-page">
+  <div class="register-card">
+    <div class="register-header">
+      <h1>Créer un compte</h1>
+      <p class="text-light">Rejoignez Le Nid Spa en quelques secondes</p>
+    </div>
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <span class="alert-icon">✕</span>
+        {{ errorMessage }}
+      </div>
+    }
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="firstName">Prénom</label>
+          <input
+            id="firstName"
+            type="text"
+            class="form-control"
+            [class.is-invalid]="f['firstName'].touched && f['firstName'].invalid"
+            formControlName="firstName"
+            placeholder="Votre prénom"
+            autocomplete="given-name"
+          />
+          @if (f['firstName'].touched && f['firstName'].invalid) {
+            <div class="form-error">Le prénom est requis</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="lastName">Nom</label>
+          <input
+            id="lastName"
+            type="text"
+            class="form-control"
+            [class.is-invalid]="f['lastName'].touched && f['lastName'].invalid"
+            formControlName="lastName"
+            placeholder="Votre nom"
+            autocomplete="family-name"
+          />
+          @if (f['lastName'].touched && f['lastName'].invalid) {
+            <div class="form-error">Le nom est requis</div>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          class="form-control"
+          [class.is-invalid]="f['email'].touched && f['email'].invalid"
+          formControlName="email"
+          placeholder="votre@email.com"
+          autocomplete="email"
+        />
+        @if (f['email'].touched && f['email'].invalid) {
+          <div class="form-error">
+            @if (f['email'].errors?.['required']) {
+              L'email est requis
+            } @else {
+              L'email n'est pas valide
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Mot de passe</label>
+        <input
+          id="password"
+          type="password"
+          class="form-control"
+          [class.is-invalid]="f['password'].touched && f['password'].invalid"
+          formControlName="password"
+          placeholder="Au moins 6 caractères"
+          autocomplete="new-password"
+        />
+        @if (f['password'].touched && f['password'].invalid) {
+          <div class="form-error">
+            @if (f['password'].errors?.['required']) {
+              Le mot de passe est requis
+            } @else {
+              Le mot de passe doit contenir au moins 6 caractères
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirmPassword">Confirmer le mot de passe</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          class="form-control"
+          [class.is-invalid]="f['confirmPassword'].touched && (f['confirmPassword'].invalid || registerForm.errors?.['passwordsMismatch'])"
+          formControlName="confirmPassword"
+          placeholder="Retapez votre mot de passe"
+          autocomplete="new-password"
+        />
+        @if (f['confirmPassword'].touched && f['confirmPassword'].errors?.['required']) {
+          <div class="form-error">Veuillez confirmer votre mot de passe</div>
+        } @else if (f['confirmPassword'].touched && registerForm.errors?.['passwordsMismatch']) {
+          <div class="form-error">Les mots de passe ne correspondent pas</div>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg btn-block" [disabled]="loading">
+        @if (loading) {
+          <span class="spinner spinner-sm"></span>
+        }
+        {{ loading ? 'Création...' : 'Créer mon compte' }}
+      </button>
+    </form>
+
+    <p class="register-footer">
+      Déjà un compte ?
+      <a routerLink="/login">Se connecter</a>
+    </p>
+  </div>
+</div>

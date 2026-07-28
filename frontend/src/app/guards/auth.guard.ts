@@ -15,7 +15,7 @@ export class AuthGuardService {
 
     const creds = this.auth.getCredentials();
     if (creds && !this.auth.isAuthenticated()) {
-      return this.auth.login(creds.username, creds.password).pipe(
+      return this.auth.login(creds.email, creds.password).pipe(
         map(() => true),
         catchError(() => {
           this.auth.logout();

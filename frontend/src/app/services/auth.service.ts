@@ -10,15 +10,15 @@ import { User } from '../models/user.model';
 export class AuthService {
   private apiUrl = '/api';
   private currentUser: User | null = null;
-  private credentials: { username: string; password: string } | null = null;
+  private credentials: { email: string; password: string } | null = null;
   private authState = new BehaviorSubject<User | null>(null);
 
   authState$ = this.authState.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  login(username: string, password: string): Observable<User> {
-    this.credentials = { username, password };
+  login(email: string, password: string): Observable<User> {
+    this.credentials = { email, password };
     return this.loadUserProfile().pipe(
       tap(user => {
         this.currentUser = user;
@@ -54,13 +54,13 @@ export class AuthService {
     return this.currentUser?.role === 'ROLE_ADMIN' || this.currentUser?.role === 'ADMIN';
   }
 
-  getCredentials(): { username: string; password: string } | null {
+  getCredentials(): { email: string; password: string } | null {
     return this.credentials;
   }
 
   getAuthHeader(): string | null {
     if (!this.credentials) return null;
-    return 'Basic ' + btoa(`${this.credentials.username}:${this.credentials.password}`);
+    return 'Basic ' + btoa(`${this.credentials.email}:${this.credentials.password}`);
   }
 
   private buildAuthHeaders(): HttpHeaders {
