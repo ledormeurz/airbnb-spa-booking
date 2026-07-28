@@ -213,15 +213,16 @@ airbnb-spa-booking/
 | `GET` | `/api/public/availability` | Disponibilités sur une période (paramètres : `startDate`, `endDate`) |
 | `POST` | `/api/public/booking-requests` | Créer une demande de réservation (anonyme) |
 | `POST` | `/api/public/register` | Créer un compte utilisateur (email + mot de passe) |
+| `POST` | `/api/public/login` | Connexion JWT (email + mot de passe → access token) |
 
-### Endpoints utilisateur (authentification Basic requise)
+### Endpoints utilisateur (JWT Bearer requis)
 
 | Méthode | Chemin | Description |
 |---------|--------|-------------|
 | `GET` | `/api/user/profile` | Profil de l'utilisateur connecté |
 | `GET` | `/api/user/bookings` | Liste des réservations de l'utilisateur connecté |
 
-### Endpoints administrateur (authentification Basic + rôle ADMIN requis)
+### Endpoints administrateur (JWT Bearer + rôle ADMIN requis)
 
 | Méthode | Chemin | Description |
 |---------|--------|-------------|
@@ -236,15 +237,18 @@ airbnb-spa-booking/
 
 ## 🔐 Authentification
 
-Ce projet utilise **HTTP Basic Authentication**, avec l'**email** comme identifiant de connexion.
+Le frontend utilise un **JWT access token** simple. L'identifiant de connexion est l'**email**.
+HTTP Basic Auth reste disponible en fallback (tests / curl).
 
-### Comment ça fonctionne
+### Comment ça fonctionne (JWT)
 
-1. L'identifiant de connexion est l'**adresse email** de l'utilisateur (et non un nom d'utilisateur).
-2. Le client envoie ses identifiants (`email:password`) encodés en **Base64** dans l'en-tête HTTP `Authorization`.
-3. Le serveur recherche l'utilisateur par email, décode les identifiants et vérifie leur validité.
-4. Si valides, la requête est traitée avec le rôle de l'utilisateur (`USER` ou `ADMIN`).
-5. Si invalides, le serveur répond avec un statut `401 Unauthorized`.
+1. `POST /api/public/login` avec `{ email, password }`.
+2. Le serveur vérifie les identifiants et renvoie un `accessToken` (claims : `sub`, `uid`, `role`, `exp`).
+3. Les requêtes protégées envoient `Authorization: Bearer <accessToken>`.
+4. Le filtre JWT valide la signature et l'expiration, puis place l'utilisateur dans le contexte Spring Security.
+5. Token invalide / expiré → `401 Unauthorized`.
+
+Durée par défaut : **1 heure** (`JWT_EXPIRATION_MS`).
 
 ### Créer un compte (inscription)
 
@@ -258,17 +262,19 @@ curl -X POST http://localhost:8080/api/public/register \
 
 Le mot de passe doit contenir au moins 6 caractères. L'email doit être unique.
 
-### Exemple de connexion (admin)
+### Exemple de connexion JWT (admin)
 
 ```bash
-# Encoder les identifiants (email:password)
-echo -n "admin@airbnbspa.com:admin123" | base64
+# 1) Obtenir un access token
+curl -s -X POST http://localhost:8080/api/public/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@airbnbspa.com","password":"admin123"}'
 
-# Envoyer la requête avec l'en-tête encodé
-curl -H "Authorization: Basic <chaîne_encodée>" http://localhost:8080/api/admin/dashboard
+# 2) Appeler un endpoint protégé
+curl -H "Authorization: Bearer <accessToken>" http://localhost:8080/api/admin/dashboard
 ```
 
-Ou plus simplement, en laissant curl encoder pour vous :
+Fallback Basic Auth (toujours supporté) :
 
 ```bash
 curl -u admin@airbnbspa.com:admin123 http://localhost:8080/api/admin/dashboard
@@ -356,6 +362,8 @@ Une fois que l'utilisateur a fourni ses identifiants, le navigateur les renvoie 
 | `SPRING_PROFILES_ACTIVE` | Profil Spring actif | `dev` | Non |
 | `ADMIN_USERNAME` | Identifiant admin par défaut | `admin` | Non |
 | `ADMIN_PASSWORD` | Mot de passe admin par défaut | `admin123` | Non |
+| `JWT_SECRET` | Secret de signature JWT (HS256, ≥ 32 car.) | valeur démo | **Oui en prod** |
+| `JWT_EXPIRATION_MS` | Durée de vie du access token (ms) | `3600000` (1h) | Non |
 | `SERVER_PORT` | Port du backend (interne) | `8080` | Non |
 
 ---
