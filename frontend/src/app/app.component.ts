@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from './services/auth.service';
@@ -20,7 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   currentYear = new Date().getFullYear();
   private sub?: Subscription;
 
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.sub = this.auth.authState$.subscribe(user => {
@@ -50,5 +50,6 @@ export class AppComponent implements OnInit, OnDestroy {
   logout(): void {
     this.auth.logout();
     this.closeMenus();
+    this.router.navigate(['/']);
   }
 }
