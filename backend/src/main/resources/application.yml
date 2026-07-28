@@ -32,3 +32,7 @@ management:
 
 app:
   init-demo-data: false
+  jwt:
+    # Secret HS256 (>= 32 caractères). À surcharger via JWT_SECRET en prod.
+    secret: ${JWT_SECRET:change-me-airbnb-spa-jwt-secret-key-32b}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}

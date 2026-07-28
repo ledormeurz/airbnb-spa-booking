@@ -77,6 +77,68 @@ class RegistrationAuthTest {
     }
 
     @Test
+    @DisplayName("POST /api/public/login renvoie un access token JWT utilisable")
+    void jwtLoginReturnsAccessToken() throws Exception {
+        String registerBody = json(Map.of(
+                "email", "jwt.user@example.com",
+                "password", "secret123",
+                "firstName", "Jwt",
+                "lastName", "User"));
+
+        mockMvc.perform(post("/api/public/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerBody))
+                .andExpect(status().isCreated());
+
+        String loginBody = json(Map.of(
+                "email", "jwt.user@example.com",
+                "password", "secret123"));
+
+        String response = mockMvc.perform(post("/api/public/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.expiresIn").isNumber())
+                .andExpect(jsonPath("$.user.email").value("jwt.user@example.com"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String accessToken = objectMapper.readTree(response).get("accessToken").asText();
+
+        mockMvc.perform(get("/api/user/profile")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("jwt.user@example.com"));
+    }
+
+    @Test
+    @DisplayName("POST /api/public/login avec mauvais mot de passe renvoie 401")
+    void jwtLoginRejectsBadPassword() throws Exception {
+        String registerBody = json(Map.of(
+                "email", "jwt.bad@example.com",
+                "password", "secret123",
+                "firstName", "Jwt",
+                "lastName", "Bad"));
+
+        mockMvc.perform(post("/api/public/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerBody))
+                .andExpect(status().isCreated());
+
+        String loginBody = json(Map.of(
+                "email", "jwt.bad@example.com",
+                "password", "wrong-password"));
+
+        mockMvc.perform(post("/api/public/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginBody))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @DisplayName("Une inscription avec un email déjà utilisé renvoie 400")
     void duplicateEmailIsRejected() throws Exception {
         String body = json(Map.of(

@@ -2,6 +2,7 @@ package com.airbnbspa.controller;
 
 import com.airbnbspa.dto.*;
 import com.airbnbspa.entity.PriceRule;
+import com.airbnbspa.service.AuthService;
 import com.airbnbspa.service.AvailabilityService;
 import com.airbnbspa.service.BookingService;
 import com.airbnbspa.service.EquipmentService;
@@ -27,17 +28,20 @@ public class PublicController {
     private final BookingService bookingService;
     private final AvailabilityService availabilityService;
     private final UserService userService;
+    private final AuthService authService;
 
     public PublicController(EquipmentService equipmentService,
                             PriceCalculationService priceCalculationService,
                             BookingService bookingService,
                             AvailabilityService availabilityService,
-                            UserService userService) {
+                            UserService userService,
+                            AuthService authService) {
         this.equipmentService = equipmentService;
         this.priceCalculationService = priceCalculationService;
         this.bookingService = bookingService;
         this.availabilityService = availabilityService;
         this.userService = userService;
+        this.authService = authService;
     }
 
     @GetMapping("/property")
@@ -118,5 +122,11 @@ public class PublicController {
                 request.getFirstName(),
                 request.getLastName());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+        AuthResponseDTO response = authService.login(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(response);
     }
 }
