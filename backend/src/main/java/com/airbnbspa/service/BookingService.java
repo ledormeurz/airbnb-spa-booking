@@ -100,6 +100,20 @@ public class BookingService {
     }
 
     /**
+     * Retourne l'entité Booking si l'utilisateur courant y a accès
+     * (propriétaire lié ou même email pour une réservation anonyme).
+     */
+    @Transactional(readOnly = true)
+    public Booking getAccessibleBooking(Long id, User currentUser) {
+        Booking booking = findBookingById(id);
+        if (!canAccess(booking, currentUser)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You can only access your own bookings");
+        }
+        return booking;
+    }
+
+    /**
      * Update a PENDING booking (only the owner can update).
      */
     public BookingResponseDTO updateBooking(Long id, BookingRequestDTO dto, User currentUser) {
@@ -372,6 +386,17 @@ public class BookingService {
             return false;
         }
         return booking.getUser().getId().equals(user.getId());
+    }
+
+    private boolean canAccess(Booking booking, User user) {
+        if (user == null) {
+            return false;
+        }
+        if (booking.getUser() != null) {
+            return booking.getUser().getId().equals(user.getId());
+        }
+        return booking.getEmail() != null
+                && booking.getEmail().equalsIgnoreCase(user.getEmail());
     }
 
     private BookingResponseDTO toDTO(Booking booking) {

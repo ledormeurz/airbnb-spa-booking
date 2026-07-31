@@ -3,15 +3,20 @@ package com.airbnbspa.controller;
 import com.airbnbspa.dto.BookingRequestDTO;
 import com.airbnbspa.dto.BookingResponseDTO;
 import com.airbnbspa.dto.UserDTO;
+import com.airbnbspa.entity.Booking;
 import com.airbnbspa.entity.User;
 import com.airbnbspa.service.BookingService;
+import com.airbnbspa.service.ICalendarService;
 import com.airbnbspa.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -20,10 +25,14 @@ public class UserController {
 
     private final UserService userService;
     private final BookingService bookingService;
+    private final ICalendarService iCalendarService;
 
-    public UserController(UserService userService, BookingService bookingService) {
+    public UserController(UserService userService,
+                          BookingService bookingService,
+                          ICalendarService iCalendarService) {
         this.userService = userService;
         this.bookingService = bookingService;
+        this.iCalendarService = iCalendarService;
     }
 
     private User getCurrentUser(Authentication authentication) {
@@ -70,6 +79,23 @@ public class UserController {
         }
 
         return ResponseEntity.ok(booking);
+    }
+
+    @GetMapping(value = "/bookings/{id}/calendar.ics", produces = "text/calendar")
+    public ResponseEntity<byte[]> downloadBookingCalendar(
+            @PathVariable Long id,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        Booking booking = bookingService.getAccessibleBooking(id, user);
+        String ics = iCalendarService.toIcs(booking);
+        byte[] body = ics.getBytes(StandardCharsets.UTF_8);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("text", "calendar", StandardCharsets.UTF_8));
+        headers.set(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"reservation-" + id + ".ics\"");
+
+        return new ResponseEntity<>(body, headers, HttpStatus.OK);
     }
 
     @PutMapping("/bookings/{id}")
