@@ -7,7 +7,6 @@ import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Description;
-import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.Status;
 import net.fortuna.ical4j.model.property.Uid;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.time.Instant;
 import java.time.LocalDate;
 
 @Service
@@ -44,7 +42,6 @@ public class ICalendarService {
         event.add(new Uid(buildUid(booking.getId())));
         event.add(new Description(buildDescription(booking)));
         event.add(mapStatus(booking.getStatus()));
-        event.add(new DtStamp(Instant.now()));
 
         Calendar calendar = new Calendar();
         calendar.add(new ProdId(PROD_ID));
