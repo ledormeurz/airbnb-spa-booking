@@ -85,7 +85,7 @@ public class BookingService {
     @Transactional(readOnly = true)
     public List<BookingResponseDTO> getUserBookings(Long userId) {
         User user = userService.findById(userId);
-        return bookingRepository.findByUser(user).stream()
+        return bookingRepository.findAccessibleByUser(user, user.getEmail()).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }

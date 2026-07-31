@@ -8,10 +8,12 @@ import com.airbnbspa.service.BookingService;
 import com.airbnbspa.service.EquipmentService;
 import com.airbnbspa.service.PriceCalculationService;
 import com.airbnbspa.service.UserService;
+import com.airbnbspa.entity.User;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -108,10 +110,21 @@ public class PublicController {
 
     @PostMapping("/booking-requests")
     public ResponseEntity<BookingResponseDTO> createBookingRequest(
-            @Valid @RequestBody BookingRequestDTO requestDTO) {
-        // Anonymous booking - user is null
-        BookingResponseDTO response = bookingService.createBooking(requestDTO, null);
+            @Valid @RequestBody BookingRequestDTO requestDTO,
+            Authentication authentication) {
+        User user = resolveAuthenticatedUser(authentication);
+        BookingResponseDTO response = bookingService.createBooking(requestDTO, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private User resolveAuthenticatedUser(Authentication authentication) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getPrincipal() == null
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+        return userService.findByLogin(authentication.getName());
     }
 
     @PostMapping("/register")

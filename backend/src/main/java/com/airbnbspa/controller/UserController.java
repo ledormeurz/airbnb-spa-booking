@@ -65,20 +65,8 @@ public class UserController {
             @PathVariable Long id,
             Authentication authentication) {
         User user = getCurrentUser(authentication);
-        BookingResponseDTO booking = bookingService.getBookingById(id);
-
-        // Verify ownership
-        if (booking.getUserId() != null && !booking.getUserId().equals(user.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        // If booking has no user (anonymous), check email match
-        if (booking.getUserId() == null) {
-            if (!booking.getEmail().equalsIgnoreCase(user.getEmail())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
-
-        return ResponseEntity.ok(booking);
+        Booking booking = bookingService.getAccessibleBooking(id, user);
+        return ResponseEntity.ok(bookingService.getBookingById(booking.getId()));
     }
 
     @GetMapping(value = "/bookings/{id}/calendar.ics", produces = "text/calendar")
