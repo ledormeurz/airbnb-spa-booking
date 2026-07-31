@@ -72,6 +72,12 @@ export class ApiService {
     return this.http.delete<void>(`${this.apiUrl}/user/bookings/${id}`);
   }
 
+  downloadBookingCalendar(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/user/bookings/${id}/calendar.ics`, {
+      responseType: 'blob'
+    });
+  }
+
   // ==================== ADMIN ====================
 
   getDashboard(): Observable<Dashboard> {
