@@ -221,6 +221,8 @@ airbnb-spa-booking/
 |---------|--------|-------------|
 | `GET` | `/api/user/profile` | Profil de l'utilisateur connecté |
 | `GET` | `/api/user/bookings` | Liste des réservations de l'utilisateur connecté |
+| `GET` | `/api/user/bookings/{id}` | Détail d'une réservation (propriétaire uniquement) |
+| `GET` | `/api/user/bookings/{id}/calendar.ics` | Export iCalendar (`.ics`) de la réservation |
 
 ### Endpoints administrateur (JWT Bearer + rôle ADMIN requis)
 
@@ -232,6 +234,24 @@ airbnb-spa-booking/
 | `GET` | `/api/admin/prices` | Gestion des prix |
 | `GET` | `/api/admin/equipment` | Gestion des équipements |
 | `GET` | `/api/admin/availability-blocks` | Blocs d'indisponibilité |
+
+### Export iCalendar (`.ics`)
+
+Un utilisateur connecté peut télécharger un fichier **iCalendar** pour une de ses réservations, puis l'ouvrir dans Outlook, Google Calendar, Apple Calendar, etc.
+
+- **API** : `GET /api/user/bookings/{id}/calendar.ics` (JWT Bearer requis, propriétaire uniquement)
+- **Frontend** : bouton **Ajouter à mon agenda** sur la page détail d'une réservation (`/user/bookings/{id}`)
+- **Contenu** : événement journée entière (`UID` stable `booking-{id}@airbnbspa.com`, titre, dates, statut)
+
+Exemple :
+
+```bash
+curl -H "Authorization: Bearer <accessToken>" \
+  -o reservation-1.ics \
+  http://localhost:8080/api/user/bookings/1/calendar.ics
+```
+
+> Cette V1 couvre l'**export** agenda. La synchronisation multi-plateformes (Airbnb / Booking.com) n'est pas encore implémentée.
 
 ---
 
