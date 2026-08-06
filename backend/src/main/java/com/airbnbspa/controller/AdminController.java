@@ -8,8 +8,10 @@ import com.airbnbspa.service.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,19 +28,22 @@ public class AdminController {
     private final AvailabilityService availabilityService;
     private final PriceCalculationService priceCalculationService;
     private final PriceRuleRepository priceRuleRepository;
+    private final IcalImportService icalImportService;
 
     public AdminController(BookingService bookingService,
                            UserService userService,
                            EquipmentService equipmentService,
                            AvailabilityService availabilityService,
                            PriceCalculationService priceCalculationService,
-                           PriceRuleRepository priceRuleRepository) {
+                           PriceRuleRepository priceRuleRepository,
+                           IcalImportService icalImportService) {
         this.bookingService = bookingService;
         this.userService = userService;
         this.equipmentService = equipmentService;
         this.availabilityService = availabilityService;
         this.priceCalculationService = priceCalculationService;
         this.priceRuleRepository = priceRuleRepository;
+        this.icalImportService = icalImportService;
     }
 
     // ==================== DASHBOARD ====================
@@ -124,6 +129,14 @@ public class AdminController {
             return ResponseEntity.ok(availabilityService.getBlocksInRangeDTO(dateFrom, dateTo));
         }
         return ResponseEntity.ok(availabilityService.getAllBlockDTOs());
+    }
+
+    @PostMapping(value = "/availability-blocks/import-ics", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<IcalImportResultDTO> importAvailabilityIcs(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(defaultValue = "ICAL") String source) {
+        IcalImportResultDTO result = icalImportService.importFromFile(file, source);
+        return ResponseEntity.ok(result);
     }
 
     // ==================== PRICE RULES ====================
