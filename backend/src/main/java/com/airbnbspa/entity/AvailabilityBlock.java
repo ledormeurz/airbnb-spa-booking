@@ -27,6 +27,18 @@ public class AvailabilityBlock {
     @Column(length = 255)
     private String reason;
 
+    /**
+     * UID iCalendar externe (ex. événement Airbnb). Unique quand présent.
+     */
+    @Column(name = "external_uid", length = 255, unique = true)
+    private String externalUid;
+
+    /**
+     * Origine du bloc : MANUAL, AIRBNB, BOOKING, ICAL, etc.
+     */
+    @Column(length = 50)
+    private String source;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

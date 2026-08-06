@@ -113,6 +113,8 @@ public class AvailabilityService {
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .reason(dto.getReason())
+                .source(dto.getSource() != null && !dto.getSource().isBlank() ? dto.getSource() : "MANUAL")
+                .externalUid(dto.getExternalUid())
                 .build();
 
         return availabilityBlockRepository.save(block);
@@ -156,6 +158,8 @@ public class AvailabilityService {
                 .startDate(block.getStartDate())
                 .endDate(block.getEndDate())
                 .reason(block.getReason())
+                .externalUid(block.getExternalUid())
+                .source(block.getSource())
                 .createdAt(block.getCreatedAt())
                 .build();
     }

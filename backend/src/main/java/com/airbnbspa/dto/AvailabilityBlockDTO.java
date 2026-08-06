@@ -25,6 +25,10 @@ public class AvailabilityBlockDTO {
 
     private String reason;
 
+    private String externalUid;
+
+    private String source;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 }

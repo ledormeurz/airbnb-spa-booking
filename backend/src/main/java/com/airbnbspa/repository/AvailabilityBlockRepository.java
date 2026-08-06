@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AvailabilityBlockRepository extends JpaRepository<AvailabilityBlock, Long> {
@@ -18,4 +19,6 @@ public interface AvailabilityBlockRepository extends JpaRepository<AvailabilityB
 
     List<AvailabilityBlock> findByStartDateGreaterThanEqual(LocalDate date);
     List<AvailabilityBlock> findByStartDateGreaterThanEqualAndEndDateLessThanEqual(LocalDate start, LocalDate end);
+
+    Optional<AvailabilityBlock> findByExternalUid(String externalUid);
 }
