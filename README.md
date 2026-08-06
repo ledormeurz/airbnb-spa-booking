@@ -234,6 +234,7 @@ airbnb-spa-booking/
 | `GET` | `/api/admin/prices` | Gestion des prix |
 | `GET` | `/api/admin/equipment` | Gestion des équipements |
 | `GET` | `/api/admin/availability-blocks` | Blocs d'indisponibilité |
+| `POST` | `/api/admin/availability-blocks/import-ics` | Import d'un fichier `.ics` (multipart `file`, `source`) |
 
 ### Export iCalendar (`.ics`)
 
@@ -251,7 +252,24 @@ curl -H "Authorization: Bearer <accessToken>" \
   http://localhost:8080/api/user/bookings/1/calendar.ics
 ```
 
-> Cette V1 couvre l'**export** agenda. La synchronisation multi-plateformes (Airbnb / Booking.com) n'est pas encore implémentée.
+### Import iCalendar → blocs d'indisponibilité
+
+Un **admin** peut importer un export calendrier (ex. Airbnb) pour bloquer les dates déjà réservées ailleurs. Les événements deviennent des `AvailabilityBlock` (pas des `Booking` clients).
+
+- **API** : `POST /api/admin/availability-blocks/import-ics` (multipart : `file` + `source` optionnel, défaut `ICAL`)
+- **Upsert** par `UID` iCal (`external_uid`) : réimporter le même fichier met à jour sans doublons
+- **Dates** : `DTEND` iCal `VALUE=DATE` est exclusif → converti en `endDate` inclusive côté app
+
+Exemple :
+
+```bash
+curl -H "Authorization: Bearer <accessToken>" \
+  -F "file=@listing.ics" \
+  -F "source=AIRBNB" \
+  http://localhost:8080/api/admin/availability-blocks/import-ics
+```
+
+> Prochaine étape : sync périodique via URL iCal Airbnb/Booking (sans upload manuel).
 
 ---
 
