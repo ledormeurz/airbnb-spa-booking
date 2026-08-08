@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
@@ -14,6 +14,8 @@ import { AvailabilityBlock } from '../../../models/availability.model';
 export class AdminCalendarComponent implements OnInit {
   private apiService = inject(ApiService);
 
+  @ViewChild('icsFileInput') icsFileInput?: ElementRef<HTMLInputElement>;
+
   currentMonth: number;
   currentYear: number;
   monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
@@ -25,6 +27,7 @@ export class AdminCalendarComponent implements OnInit {
 
   blocks: AvailabilityBlock[] = [];
   loading = false;
+  importing = false;
   errorMessage = '';
   successMessage = '';
 
@@ -33,6 +36,10 @@ export class AdminCalendarComponent implements OnInit {
     endDate: '',
     reason: ''
   };
+
+  icsSource = 'AIRBNB';
+  icsSources = ['AIRBNB', 'BOOKING', 'ICAL'];
+  selectedIcsFile: File | null = null;
 
   constructor() {
     const now = new Date();
@@ -131,6 +138,7 @@ export class AdminCalendarComponent implements OnInit {
       return;
     }
 
+    this.errorMessage = '';
     this.apiService.createBlock({
       startDate: this.blockForm.startDate,
       endDate: this.blockForm.endDate,
@@ -143,6 +151,44 @@ export class AdminCalendarComponent implements OnInit {
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Erreur lors du blocage.';
+      }
+    });
+  }
+
+  onIcsFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.selectedIcsFile = file;
+    this.errorMessage = '';
+  }
+
+  importIcs(): void {
+    if (!this.selectedIcsFile) {
+      this.errorMessage = 'Veuillez choisir un fichier .ics.';
+      return;
+    }
+
+    this.importing = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.apiService.importAvailabilityIcs(this.selectedIcsFile, this.icsSource).subscribe({
+      next: (result) => {
+        this.importing = false;
+        this.successMessage =
+          `Import ${result.source} : ${result.imported} créé(s), ` +
+          `${result.updated} mis à jour, ${result.skipped} ignoré(s) ` +
+          `(${result.totalEvents} événement(s)).`;
+        this.selectedIcsFile = null;
+        if (this.icsFileInput) {
+          this.icsFileInput.nativeElement.value = '';
+        }
+        this.loadData();
+      },
+      error: (err) => {
+        this.importing = false;
+        this.errorMessage =
+          err.error?.message || err.error?.error || 'Erreur lors de l\'import du calendrier.';
       }
     });
   }

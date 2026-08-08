@@ -90,6 +90,45 @@
           </div>
         </div>
 
+        <div class="card block-form-card">
+          <div class="card-header">
+            <h3>Importer un calendrier</h3>
+          </div>
+          <div class="block-form">
+            <p class="import-hint">Fichier .ics Airbnb / Booking pour bloquer les dates déjà réservées.</p>
+            <div class="form-group">
+              <label class="form-label" for="icsFile">Fichier .ics</label>
+              <input
+                #icsFileInput
+                id="icsFile"
+                type="file"
+                class="form-control"
+                accept=".ics,text/calendar"
+                (change)="onIcsFileSelected($event)"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="icsSource">Source</label>
+              <select id="icsSource" class="form-control" [(ngModel)]="icsSource">
+                @for (source of icsSources; track source) {
+                  <option [value]="source">{{ source }}</option>
+                }
+              </select>
+            </div>
+            @if (selectedIcsFile) {
+              <p class="import-file-name">{{ selectedIcsFile.name }}</p>
+            }
+            <button
+              type="button"
+              class="btn btn-primary btn-block"
+              (click)="importIcs()"
+              [disabled]="importing || !selectedIcsFile"
+            >
+              {{ importing ? 'Import en cours…' : 'Importer' }}
+            </button>
+          </div>
+        </div>
+
         @if (blocks.length > 0) {
           <div class="card blocks-list-card">
             <div class="card-header">
@@ -102,6 +141,9 @@
                     <span class="block-dates">{{ block.startDate | date:'dd/MM/yyyy' }} — {{ block.endDate | date:'dd/MM/yyyy' }}</span>
                     @if (block.reason) {
                       <span class="block-reason">{{ block.reason }}</span>
+                    }
+                    @if (block.source) {
+                      <span class="block-source">{{ block.source }}</span>
                     }
                   </div>
                   <button type="button" class="btn btn-danger btn-sm" (click)="deleteBlock(block.id)">×</button>
