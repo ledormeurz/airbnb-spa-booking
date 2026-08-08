@@ -131,23 +131,42 @@
 
         @if (blocks.length > 0) {
           <div class="card blocks-list-card">
-            <div class="card-header">
+            <div class="card-header blocks-list-header">
               <h3>Blocages actuels</h3>
+              <span class="blocks-count">{{ filteredBlocks.length }}/{{ blocks.length }}</span>
+            </div>
+            <div class="form-group blocks-filter">
+              <label class="form-label" for="blockSourceFilter">Filtrer par source</label>
+              <select
+                id="blockSourceFilter"
+                class="form-control"
+                [(ngModel)]="blockSourceFilter"
+              >
+                <option value="ALL">Tous</option>
+                <option value="MANUAL">Manuel</option>
+                @for (source of blockFilterOptions; track source) {
+                  <option [value]="source">{{ source }}</option>
+                }
+              </select>
             </div>
             <div class="blocks-list">
-              @for (block of blocks; track block.id) {
-                <div class="block-item">
-                  <div class="block-info">
-                    <span class="block-dates">{{ block.startDate | date:'dd/MM/yyyy' }} — {{ block.endDate | date:'dd/MM/yyyy' }}</span>
-                    @if (block.reason) {
-                      <span class="block-reason">{{ block.reason }}</span>
-                    }
-                    @if (block.source) {
-                      <span class="block-source">{{ block.source }}</span>
-                    }
+              @if (filteredBlocks.length === 0) {
+                <p class="blocks-empty">Aucun blocage pour ce filtre.</p>
+              } @else {
+                @for (block of filteredBlocks; track block.id) {
+                  <div class="block-item">
+                    <div class="block-info">
+                      <span class="block-dates">{{ block.startDate | date:'dd/MM/yyyy' }} — {{ block.endDate | date:'dd/MM/yyyy' }}</span>
+                      @if (block.reason) {
+                        <span class="block-reason">{{ block.reason }}</span>
+                      }
+                      @if (block.source) {
+                        <span class="block-source">{{ block.source }}</span>
+                      }
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm" (click)="deleteBlock(block.id)">×</button>
                   </div>
-                  <button type="button" class="btn btn-danger btn-sm" (click)="deleteBlock(block.id)">×</button>
-                </div>
+                }
               }
             </div>
           </div>

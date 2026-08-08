@@ -33,10 +33,42 @@
   margin-bottom: 14px;
 }
 
+.blocks-list-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.blocks-list-header h3 {
+  margin: 0;
+}
+
+.blocks-count {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+.blocks-filter {
+  margin-bottom: 12px;
+}
+
 .blocks-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.blocks-empty {
+  margin: 0;
+  padding: 12px;
+  font-size: 0.82rem;
+  color: var(--color-text-light);
+  text-align: center;
 }
 
 .block-item {

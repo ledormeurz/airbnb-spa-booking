@@ -26,6 +26,7 @@ export class AdminCalendarComponent implements OnInit {
   blockedDates: Set<string> = new Set();
 
   blocks: AvailabilityBlock[] = [];
+  blockSourceFilter: 'ALL' | 'MANUAL' | string = 'ALL';
   loading = false;
   importing = false;
   errorMessage = '';
@@ -40,6 +41,32 @@ export class AdminCalendarComponent implements OnInit {
   icsSource = 'AIRBNB';
   icsSources = ['AIRBNB', 'BOOKING', 'ICAL'];
   selectedIcsFile: File | null = null;
+
+  get blockFilterOptions(): string[] {
+    const sources = new Set<string>();
+    for (const block of this.blocks) {
+      const source = block.source?.trim().toUpperCase();
+      if (source && source !== 'MANUAL') {
+        sources.add(source);
+      }
+    }
+    return Array.from(sources).sort();
+  }
+
+  get filteredBlocks(): AvailabilityBlock[] {
+    const filtered = this.blocks.filter((block) => {
+      const source = block.source?.trim().toUpperCase() || 'MANUAL';
+      if (this.blockSourceFilter === 'ALL') {
+        return true;
+      }
+      if (this.blockSourceFilter === 'MANUAL') {
+        return source === 'MANUAL' || !block.source;
+      }
+      return source === this.blockSourceFilter;
+    });
+
+    return filtered.sort((a, b) => a.startDate.localeCompare(b.startDate));
+  }
 
   constructor() {
     const now = new Date();
