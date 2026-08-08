@@ -3,7 +3,17 @@ export interface AvailabilityBlock {
   startDate: string;
   endDate: string;
   reason: string;
+  externalUid?: string;
+  source?: string;
   createdAt: string;
+}
+
+export interface IcalImportResult {
+  totalEvents: number;
+  imported: number;
+  updated: number;
+  skipped: number;
+  source: string;
 }
 
 export interface CalendarDay {

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { Booking, BookingRequest } from '../models/booking.model';
 import { PriceRule } from '../models/price-rule.model';
 import { Equipment } from '../models/equipment.model';
-import { AvailabilityBlock } from '../models/availability.model';
+import { AvailabilityBlock, IcalImportResult } from '../models/availability.model';
 import { Dashboard } from '../models/dashboard.model';
 import { PropertyInfo } from '../models/property-info.model';
 import { User, RegisterRequest } from '../models/user.model';
@@ -123,6 +123,16 @@ export class ApiService {
 
   deleteBlock(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/availability-blocks/${id}`);
+  }
+
+  importAvailabilityIcs(file: File, source: string = 'ICAL'): Observable<IcalImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('source', source);
+    return this.http.post<IcalImportResult>(
+      `${this.apiUrl}/admin/availability-blocks/import-ics`,
+      formData
+    );
   }
 
   updatePrice(id: number, data: Partial<PriceRule>): Observable<PriceRule> {
