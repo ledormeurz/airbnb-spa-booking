@@ -11,3 +11,9 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+app:
+  calendar-sync:
+    enabled: false
+    fixed-delay-ms: 3600000
+    initial-delay-ms: 3600000
