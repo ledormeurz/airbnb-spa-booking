@@ -26,9 +26,7 @@ import java.util.Set;
 public class CalendarSyncService {
 
     private static final Logger log = LoggerFactory.getLogger(CalendarSyncService.class);
-    private static final Set<String> ALLOWED_HOST_SUFFIXES = Set.of(
-            "airbnb.com",
-            "airbnb.fr",
+    private static final Set<String> ALLOWED_BOOKING_SUFFIXES = Set.of(
             "booking.com"
     );
 
@@ -189,12 +187,29 @@ public class CalendarSyncService {
         }
 
         String normalizedHost = host.toLowerCase(Locale.ROOT);
-        boolean allowed = ALLOWED_HOST_SUFFIXES.stream()
-                .anyMatch(suffix -> normalizedHost.equals(suffix) || normalizedHost.endsWith("." + suffix));
-        if (!allowed) {
+        if (!isAllowedCalendarHost(normalizedHost)) {
             throw new IllegalArgumentException(
                     "Hôte non autorisé. Utilisez une URL Airbnb ou Booking.com");
         }
+    }
+
+    /**
+     * Accepte les domaines Airbnb nationaux (airbnb.com, airbnb.fr, airbnb.co.uk, ...)
+     * et Booking.com (y compris admin.booking.com).
+     */
+    boolean isAllowedCalendarHost(String normalizedHost) {
+        if (normalizedHost == null || normalizedHost.isBlank()) {
+            return false;
+        }
+        // Airbnb: www.airbnb.com, fr.airbnb.com, www.airbnb.co.uk, airbnb.fr, etc.
+        if (normalizedHost.equals("airbnb.com")
+                || normalizedHost.endsWith(".airbnb.com")
+                || normalizedHost.startsWith("airbnb.")
+                || normalizedHost.contains(".airbnb.")) {
+            return true;
+        }
+        return ALLOWED_BOOKING_SUFFIXES.stream()
+                .anyMatch(suffix -> normalizedHost.equals(suffix) || normalizedHost.endsWith("." + suffix));
     }
 
     private CalendarFeed getFeedEntity(Long id) {
