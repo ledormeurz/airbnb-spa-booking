@@ -84,6 +84,24 @@ class CalendarFeedSyncTest {
     }
 
     @Test
+    @DisplayName("POST calendar-feeds accepts Airbnb national domains (ex. airbnb.co.uk)")
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void createFeedAcceptsAirbnbCoUk() throws Exception {
+        mockMvc.perform(post("/api/admin/calendar-feeds")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Airbnb UK",
+                                  "url": "https://www.airbnb.co.uk/calendar/ical/listing-test.ics",
+                                  "source": "AIRBNB",
+                                  "enabled": true
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.source").value("AIRBNB"));
+    }
+
+    @Test
     @DisplayName("Create feed then sync URL imports AvailabilityBlocks")
     @WithMockUser(username = "admin", roles = "ADMIN")
     void createFeedAndSyncImportsBlocks() throws Exception {
