@@ -4,7 +4,13 @@ import { Observable } from 'rxjs';
 import { Booking, BookingRequest } from '../models/booking.model';
 import { PriceRule } from '../models/price-rule.model';
 import { Equipment } from '../models/equipment.model';
-import { AvailabilityBlock, IcalImportResult } from '../models/availability.model';
+import {
+  AvailabilityBlock,
+  CalendarFeed,
+  CalendarFeedRequest,
+  CalendarSyncResult,
+  IcalImportResult
+} from '../models/availability.model';
 import { Dashboard } from '../models/dashboard.model';
 import { PropertyInfo } from '../models/property-info.model';
 import { User, RegisterRequest } from '../models/user.model';
@@ -133,6 +139,22 @@ export class ApiService {
       `${this.apiUrl}/admin/availability-blocks/import-ics`,
       formData
     );
+  }
+
+  getCalendarFeeds(): Observable<CalendarFeed[]> {
+    return this.http.get<CalendarFeed[]>(`${this.apiUrl}/admin/calendar-feeds`);
+  }
+
+  createCalendarFeed(feed: CalendarFeedRequest): Observable<CalendarFeed> {
+    return this.http.post<CalendarFeed>(`${this.apiUrl}/admin/calendar-feeds`, feed);
+  }
+
+  deleteCalendarFeed(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/admin/calendar-feeds/${id}`);
+  }
+
+  syncCalendarFeed(id: number): Observable<CalendarSyncResult> {
+    return this.http.post<CalendarSyncResult>(`${this.apiUrl}/admin/calendar-feeds/${id}/sync`, {});
   }
 
   updatePrice(id: number, data: Partial<PriceRule>): Observable<PriceRule> {

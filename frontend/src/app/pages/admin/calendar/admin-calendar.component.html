@@ -92,10 +92,92 @@
 
         <div class="card block-form-card">
           <div class="card-header">
-            <h3>Importer un calendrier</h3>
+            <h3>Sync URL calendrier</h3>
           </div>
           <div class="block-form">
-            <p class="import-hint">Fichier .ics Airbnb / Booking pour bloquer les dates déjà réservées.</p>
+            <p class="import-hint">
+              Collez l’URL iCal Airbnb/Booking. Le serveur la synchronise aussi automatiquement (~30 min).
+            </p>
+            <div class="form-group">
+              <label class="form-label" for="feedName">Nom</label>
+              <input id="feedName" type="text" class="form-control" [(ngModel)]="feedForm.name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="feedUrl">URL iCal</label>
+              <input
+                id="feedUrl"
+                type="url"
+                class="form-control"
+                placeholder="https://www.airbnb.com/calendar/ical/...."
+                [(ngModel)]="feedForm.url"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="feedSource">Source</label>
+              <select id="feedSource" class="form-control" [(ngModel)]="feedForm.source">
+                @for (source of icsSources; track source) {
+                  <option [value]="source">{{ source }}</option>
+                }
+              </select>
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary btn-block"
+              (click)="createCalendarFeed()"
+              [disabled]="savingFeed"
+            >
+              {{ savingFeed ? 'Enregistrement…' : 'Enregistrer l’URL' }}
+            </button>
+
+            @if (calendarFeeds.length > 0) {
+              <div class="feeds-list">
+                @for (feed of calendarFeeds; track feed.id) {
+                  <div class="feed-item">
+                    <div class="feed-info">
+                      <span class="feed-name">{{ feed.name }}</span>
+                      <span class="block-source">{{ feed.source }}</span>
+                      @if (feed.lastSyncStatus) {
+                        <span class="feed-status" [class.feed-status-error]="feed.lastSyncStatus === 'ERROR'">
+                          {{ feed.lastSyncStatus }}
+                          @if (feed.lastSyncedAt) {
+                            · {{ feed.lastSyncedAt | date:'dd/MM/yyyy HH:mm' }}
+                          }
+                        </span>
+                      }
+                      @if (feed.lastSyncMessage) {
+                        <span class="feed-message">{{ feed.lastSyncMessage }}</span>
+                      }
+                    </div>
+                    <div class="feed-actions">
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                        (click)="syncCalendarFeed(feed)"
+                        [disabled]="syncingFeedId === feed.id"
+                      >
+                        {{ syncingFeedId === feed.id ? '…' : 'Sync' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-danger btn-sm"
+                        (click)="deleteCalendarFeed(feed)"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="card block-form-card">
+          <div class="card-header">
+            <h3>Importer un fichier .ics</h3>
+          </div>
+          <div class="block-form">
+            <p class="import-hint">Import manuel ponctuel (secours). Préférez la sync URL ci-dessus.</p>
             <div class="form-group">
               <label class="form-label" for="icsFile">Fichier .ics</label>
               <input

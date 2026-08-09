@@ -2,7 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
-import { AvailabilityBlock } from '../../../models/availability.model';
+import { AvailabilityBlock, CalendarFeed } from '../../../models/availability.model';
 
 @Component({
   selector: 'app-admin-calendar',
@@ -26,9 +26,12 @@ export class AdminCalendarComponent implements OnInit {
   blockedDates: Set<string> = new Set();
 
   blocks: AvailabilityBlock[] = [];
+  calendarFeeds: CalendarFeed[] = [];
   blockSourceFilter: 'ALL' | 'MANUAL' | string = 'ALL';
   loading = false;
   importing = false;
+  syncingFeedId: number | null = null;
+  savingFeed = false;
   errorMessage = '';
   successMessage = '';
 
@@ -41,6 +44,12 @@ export class AdminCalendarComponent implements OnInit {
   icsSource = 'AIRBNB';
   icsSources = ['AIRBNB', 'BOOKING', 'ICAL'];
   selectedIcsFile: File | null = null;
+
+  feedForm = {
+    name: 'Airbnb',
+    url: '',
+    source: 'AIRBNB'
+  };
 
   get blockFilterOptions(): string[] {
     const sources = new Set<string>();
@@ -106,6 +115,17 @@ export class AdminCalendarComponent implements OnInit {
     this.apiService.getAvailabilityBlocks().subscribe({
       next: (data) => {
         this.blocks = data;
+      },
+      error: () => {}
+    });
+
+    this.loadCalendarFeeds();
+  }
+
+  loadCalendarFeeds(): void {
+    this.apiService.getCalendarFeeds().subscribe({
+      next: (data) => {
+        this.calendarFeeds = data;
       },
       error: () => {}
     });
@@ -178,6 +198,78 @@ export class AdminCalendarComponent implements OnInit {
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Erreur lors du blocage.';
+      }
+    });
+  }
+
+  createCalendarFeed(): void {
+    if (!this.feedForm.name.trim() || !this.feedForm.url.trim()) {
+      this.errorMessage = 'Veuillez renseigner le nom et l\'URL iCal.';
+      return;
+    }
+
+    this.savingFeed = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.apiService.createCalendarFeed({
+      name: this.feedForm.name.trim(),
+      url: this.feedForm.url.trim(),
+      source: this.feedForm.source,
+      enabled: true
+    }).subscribe({
+      next: () => {
+        this.savingFeed = false;
+        this.successMessage = 'Flux calendrier enregistré. Vous pouvez le synchroniser.';
+        this.feedForm = { name: 'Airbnb', url: '', source: 'AIRBNB' };
+        this.loadCalendarFeeds();
+      },
+      error: (err) => {
+        this.savingFeed = false;
+        this.errorMessage =
+          err.error?.message || err.error?.error || 'Erreur lors de l\'enregistrement du flux.';
+      }
+    });
+  }
+
+  syncCalendarFeed(feed: CalendarFeed): void {
+    this.syncingFeedId = feed.id;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.apiService.syncCalendarFeed(feed.id).subscribe({
+      next: (result) => {
+        this.syncingFeedId = null;
+        if (result.status === 'SUCCESS' && result.importResult) {
+          this.successMessage =
+            `Sync ${result.source} : ${result.importResult.imported} créé(s), ` +
+            `${result.importResult.updated} mis à jour, ${result.importResult.skipped} ignoré(s).`;
+        } else {
+          this.successMessage = result.message || 'Synchronisation terminée.';
+        }
+        this.loadCalendarFeeds();
+        this.loadData();
+      },
+      error: (err) => {
+        this.syncingFeedId = null;
+        this.errorMessage =
+          err.error?.message || err.error?.error || 'Erreur lors de la synchronisation.';
+        this.loadCalendarFeeds();
+      }
+    });
+  }
+
+  deleteCalendarFeed(feed: CalendarFeed): void {
+    if (!window.confirm(`Supprimer le flux « ${feed.name} » ?`)) {
+      return;
+    }
+    this.apiService.deleteCalendarFeed(feed.id).subscribe({
+      next: () => {
+        this.successMessage = 'Flux calendrier supprimé.';
+        this.loadCalendarFeeds();
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Erreur lors de la suppression du flux.';
       }
     });
   }
