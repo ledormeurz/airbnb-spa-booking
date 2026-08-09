@@ -269,7 +269,29 @@ curl -H "Authorization: Bearer <accessToken>" \
   http://localhost:8080/api/admin/availability-blocks/import-ics
 ```
 
-> Prochaine étape : sync périodique via URL iCal Airbnb/Booking (sans upload manuel).
+### Sync URL iCal (Airbnb / Booking)
+
+Un admin peut enregistrer l’URL iCal du calendrier hosting. Le serveur télécharge périodiquement le `.ics` et met à jour les `AvailabilityBlock` (même logique d’upsert que l’import fichier).
+
+- **API** :
+  - `GET/POST /api/admin/calendar-feeds`
+  - `POST /api/admin/calendar-feeds/{id}/sync` (sync manuelle)
+  - `DELETE /api/admin/calendar-feeds/{id}`
+- **UI** : carte **Sync URL calendrier** sur `/admin/calendar`
+- **Job** : toutes les ~30 min (`app.calendar-sync.fixed-delay-ms`), désactivable via `CALENDAR_SYNC_ENABLED=false`
+- **Sécurité** : seules les URL `airbnb.com` / `airbnb.fr` / `booking.com` sont acceptées
+
+Exemple :
+
+```bash
+curl -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Airbnb","url":"https://www.airbnb.com/calendar/ical/....ics","source":"AIRBNB"}' \
+  http://localhost:8080/api/admin/calendar-feeds
+
+curl -X POST -H "Authorization: Bearer <accessToken>" \
+  http://localhost:8080/api/admin/calendar-feeds/1/sync
+```
 
 ---
 
