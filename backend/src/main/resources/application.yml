@@ -36,3 +36,8 @@ app:
     # Secret HS256 (>= 32 caractères). À surcharger via JWT_SECRET en prod.
     secret: ${JWT_SECRET:change-me-airbnb-spa-jwt-secret-key-32b}
     expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+  calendar-sync:
+    # Synchronisation périodique des URL iCal (Airbnb / Booking)
+    enabled: ${CALENDAR_SYNC_ENABLED:true}
+    fixed-delay-ms: ${CALENDAR_SYNC_FIXED_DELAY_MS:1800000}
+    initial-delay-ms: ${CALENDAR_SYNC_INITIAL_DELAY_MS:60000}
