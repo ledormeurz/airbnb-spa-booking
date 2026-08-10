@@ -278,7 +278,7 @@ Un admin peut enregistrer l’URL iCal du calendrier hosting. Le serveur téléc
   - `POST /api/admin/calendar-feeds/{id}/sync` (sync manuelle)
   - `DELETE /api/admin/calendar-feeds/{id}`
 - **UI** : carte **Sync URL calendrier** sur `/admin/calendar`
-- **Job** : toutes les ~30 min (`app.calendar-sync.fixed-delay-ms`), désactivable via `CALENDAR_SYNC_ENABLED=false`
+- **Job** : toutes les ~10 min (`app.calendar-sync.fixed-delay-ms`), désactivable via `CALENDAR_SYNC_ENABLED=false`
 - **Sécurité** : seules les URL `airbnb.com` / `airbnb.fr` / `booking.com` sont acceptées
 
 Exemple :

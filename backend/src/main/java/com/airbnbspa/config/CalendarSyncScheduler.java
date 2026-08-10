@@ -21,7 +21,7 @@ public class CalendarSyncScheduler {
         this.enabled = enabled;
     }
 
-    @Scheduled(fixedDelayString = "${app.calendar-sync.fixed-delay-ms:1800000}",
+    @Scheduled(fixedDelayString = "${app.calendar-sync.fixed-delay-ms:600000}",
             initialDelayString = "${app.calendar-sync.initial-delay-ms:60000}")
     public void syncEnabledFeeds() {
         if (!enabled) {
