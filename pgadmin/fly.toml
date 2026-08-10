@@ -1,0 +1,50 @@
+# pgAdmin — config TEST (1 instance, pas de HA, France / Paris cdg)
+#
+# Déploiement:
+#   cd pgadmin
+#   fly volumes create pgadmin_data --region cdg --size 1 -a airbnb-spa-pgadmin
+#   fly deploy --ha=false
+
+app = "airbnb-spa-pgadmin"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PGADMIN_CONFIG_SERVER_MODE = "False"
+  PGADMIN_LISTEN_ADDRESS = "0.0.0.0"
+  POSTGRES_PORT = "5432"
+  PRIMARY_REGION = "cdg"
+
+[deploy]
+  strategy = "immediate"
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 5
+    hard_limit = 10
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "60s"
+    method = "GET"
+    path = "/misc/ping"
+
+[mounts]
+  source = "pgadmin_data"
+  destination = "/var/lib/pgadmin"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1

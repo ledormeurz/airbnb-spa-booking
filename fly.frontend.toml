@@ -1,0 +1,42 @@
+# Frontend Angular + Nginx — config TEST (1 instance, pas de HA, France / Paris cdg)
+#
+# Déploiement depuis la racine du repo:
+#   fly deploy -c fly.frontend.toml --ha=false
+
+app = "airbnb-spa-frontend"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "frontend/Dockerfile"
+
+[env]
+  BACKEND_HOST = "airbnb-spa-backend.internal"
+  PRIMARY_REGION = "cdg"
+
+[deploy]
+  strategy = "immediate"
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 20
+    hard_limit = 40
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1

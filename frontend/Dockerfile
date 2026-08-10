@@ -14,10 +14,12 @@ RUN npm run build -- --configuration production
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
 
-# Copy custom nginx configuration
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+# Only substitute BACKEND_HOST — leave nginx $host / $uri vars alone
+ENV NGINX_ENVSUBST_FILTER=BACKEND_HOST
+ENV BACKEND_HOST=backend
 
-# Copy built Angular dist files
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+
 COPY --from=builder /build/dist/browser/ /usr/share/nginx/html/
 
 EXPOSE 80

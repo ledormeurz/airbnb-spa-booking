@@ -56,15 +56,15 @@ Cette application permet aux visiteurs de consulter les disponibilités, d'effec
 
 ```
                     app-network
-    ┌──────────┐    ┌──────────┐    ┌──────────┐
-    │ Frontend │◄──►│ Backend  │◄──►│ Postgres │
-    │  :80     │    │  :8080   │    │  :5432   │
-    └──────────┘    └──────────┘    └──────────┘
-         ▲
-         │ port 80
-    ┌────┴────┐
-    │  Host   │
-    └─────────┘
+    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+    │ Frontend │◄──►│ Backend  │◄──►│ Postgres │◄──►│ pgAdmin  │
+    │  :80     │    │  :8080   │    │  :5432   │    │  :5050   │
+    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+         ▲                                               ▲
+         │ port 80                                       │ port 5050
+    ┌────┴───────────────────────────────────────────────┴────┐
+    │                         Host                             │
+    └──────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -104,6 +104,7 @@ docker compose logs -f
 # 5. Ouvrir l'application
 # Frontend : http://localhost
 # Backend API : http://localhost:8080/api/public/property
+# pgAdmin : http://localhost:5050  (email/mot de passe : voir .env)
 ```
 
 **Arrêter les services :**
@@ -190,14 +191,22 @@ airbnb-spa-booking/
 │   └── Dockerfile
 │
 ├── nginx/
-│   └── default.conf                # Configuration Nginx
+│   └── default.conf.template       # Nginx (templated : BACKEND_HOST)
 │
-├── docker-compose.yml              # Orchestration Docker
+├── pgadmin/                        # pgAdmin (Docker local + Fly.io)
+│   ├── Dockerfile
+│   ├── entrypoint-wrapper.sh
+│   └── fly.toml
+│
+├── docker-compose.yml              # Orchestration Docker (postgres, backend, frontend, pgadmin)
+├── fly.frontend.toml               # Config Fly.io du frontend
 ├── .env.example                    # Exemple de variables d'environnement
 ├── .gitignore
 ├── api-tests.http                  # Tests d'API (VS Code REST Client)
 └── README.md                       # Ce fichier
 ```
+
+> Le backend a aussi `backend/fly.toml` pour le déploiement Fly.io.
 
 ---
 
@@ -342,6 +351,9 @@ Une fois que l'utilisateur a fourni ses identifiants, le navigateur les renvoie 
 | `ADMIN_USERNAME` | Identifiant admin par défaut | `admin` | Non |
 | `ADMIN_PASSWORD` | Mot de passe admin par défaut | `admin123` | Non |
 | `SERVER_PORT` | Port du backend (interne) | `8080` | Non |
+| `PGADMIN_DEFAULT_EMAIL` | Email de connexion pgAdmin | `admin@airbnb-spa.local` | Non |
+| `PGADMIN_DEFAULT_PASSWORD` | Mot de passe pgAdmin | `admin` | Non |
+| `PGADMIN_PORT` | Port hôte pgAdmin (local) | `5050` | Non |
 
 ---
 
@@ -400,11 +412,191 @@ docker compose up --build -d
 # certbot / Let's Encrypt, ou placez Nginx derrière un autre proxy.
 ```
 
-### Avec un orchestrateur (Kubernetes, Docker Swarm)
+### Déploiement sur Fly.io (test — 1 instance, région France `cdg`)
 
-Adaptez le `docker-compose.yml` pour votre orchestrateur. Les conteneurs sont conçus pour être stateless (sauf PostgreSQL) et supportent le scaling horizontal du backend.
+Architecture déployée :
+
+```
+Internet → airbnb-spa-frontend.fly.dev (Nginx + Angular)
+              └─ /api/* → airbnb-spa-backend.internal:8080
+                              └─ jdbc → airbnb-spa-db.internal:5432
+
+Optionnel : airbnb-spa-pgadmin.fly.dev → airbnb-spa-db.internal:5432
+```
+
+| App | Config | Rôle |
+|-----|--------|------|
+| `airbnb-spa-db` | Fly Postgres | Base PostgreSQL (privé) |
+| `airbnb-spa-backend` | `backend/fly.toml` | API Spring Boot |
+| `airbnb-spa-frontend` | `fly.frontend.toml` | SPA + reverse proxy `/api` |
+| `airbnb-spa-pgadmin` | `pgadmin/fly.toml` | UI admin Postgres (optionnel) |
+
+#### Prérequis
+
+- Compte [Fly.io](https://fly.io) + CLI [`flyctl`](https://fly.io/docs/hands-on/install-flyctl/)
+- `fly auth login`
+
+```bash
+fly version
+fly orgs list
+```
+
+> **Important :** toujours utiliser `--ha=false` pour rester sur **1 machine** (sinon Fly en crée 2).  
+> Postgres a besoin d’**au moins 1024 Mo de RAM** (256 Mo provoque des crashs / `connection attempt failed`).
+
+#### 1. Créer PostgreSQL (Paris)
+
+```bash
+fly postgres create --name airbnb-spa-db --region cdg \
+  --initial-cluster-size 1 --vm-size shared-cpu-1x \
+  --volume-size 1 --vm-memory 1024
+```
+
+Sauvegardez le mot de passe affiché (une seule fois).
+
+```bash
+fly postgres connect -a airbnb-spa-db
+```
+
+Puis dans `psql` :
+
+```sql
+CREATE DATABASE airbnb_spa;
+\q
+```
+
+#### 2. Backend
+
+```bash
+fly apps create airbnb-spa-backend --org personal
+
+fly secrets set \
+  SPRING_DATASOURCE_URL="jdbc:postgresql://airbnb-spa-db.internal:5432/airbnb_spa" \
+  SPRING_DATASOURCE_USERNAME="postgres" \
+  SPRING_DATASOURCE_PASSWORD="YOUR_DB_PASSWORD" \
+  SPRING_PROFILES_ACTIVE="prod" \
+  ADMIN_USERNAME="admin" \
+  ADMIN_PASSWORD="YOUR_STRONG_ADMIN_PASSWORD" \
+  -a airbnb-spa-backend
+
+cd backend
+fly deploy --ha=false
+cd ..
+```
+
+Vérifications :
+
+```bash
+fly status -a airbnb-spa-backend
+fly logs -a airbnb-spa-backend
+curl https://airbnb-spa-backend.fly.dev/actuator/health
+```
+
+#### 3. Frontend
+
+Déployer **depuis la racine du repo** (le Dockerfile copie `frontend/` + `nginx/`) :
+
+```bash
+fly apps create airbnb-spa-frontend --org personal
+fly deploy -c fly.frontend.toml --ha=false
+```
+
+Vérifications :
+
+```bash
+fly status -a airbnb-spa-frontend
+curl -I https://airbnb-spa-frontend.fly.dev/
+curl -I https://airbnb-spa-frontend.fly.dev/api/public/property
+```
+
+Nginx proxyfie `/api` vers `BACKEND_HOST` (`airbnb-spa-backend.internal` sur Fly, `backend` en local).
+
+#### 4. pgAdmin (optionnel)
+
+```bash
+fly apps create airbnb-spa-pgadmin --org personal
+fly volumes create pgadmin_data --region cdg --size 1 -a airbnb-spa-pgadmin
+
+fly secrets set \
+  PGADMIN_DEFAULT_EMAIL="you@example.com" \
+  PGADMIN_DEFAULT_PASSWORD="YOUR_STRONG_PGADMIN_PASSWORD" \
+  POSTGRES_HOST="airbnb-spa-db.internal" \
+  POSTGRES_DB="airbnb_spa" \
+  POSTGRES_USER="postgres" \
+  -a airbnb-spa-pgadmin
+
+cd pgadmin
+fly deploy --ha=false
+cd ..
+```
+
+Ouvrir https://airbnb-spa-pgadmin.fly.dev — le serveur Postgres est pré-enregistré ; utiliser le mot de passe DB à la connexion.
+
+> Les secrets `PGADMIN_DEFAULT_*` ne s’appliquent qu’au **premier** démarrage (volume vide).
+
+#### URLs
+
+| Service | URL |
+|---------|-----|
+| Application | https://airbnb-spa-frontend.fly.dev |
+| API | https://airbnb-spa-backend.fly.dev |
+| Health | https://airbnb-spa-backend.fly.dev/actuator/health |
+| pgAdmin | https://airbnb-spa-pgadmin.fly.dev |
+
+#### Commandes utiles (après déploiement)
+
+```bash
+# Redeploy après changements de code
+cd backend && fly deploy --ha=false && cd ..
+fly deploy -c fly.frontend.toml --ha=false
+cd pgadmin && fly deploy --ha=false && cd ..
+
+# Forcer 1 seule machine
+fly scale count 1 -a airbnb-spa-backend
+fly scale count 1 -a airbnb-spa-frontend
+fly scale count 1 -a airbnb-spa-pgadmin
+
+# Logs / SSH
+fly logs -a airbnb-spa-backend
+fly logs -a airbnb-spa-frontend
+fly ssh console -a airbnb-spa-backend
+
+# Postgres — statut / RAM (min. 1024 Mo recommandé)
+fly status -a airbnb-spa-db
+fly scale show -a airbnb-spa-db
+fly machine update <MACHINE_ID> -a airbnb-spa-db --vm-memory 1024 -y
+
+# Mettre pgAdmin en pause pour économiser
+fly scale count 0 -a airbnb-spa-pgadmin
+fly scale count 1 -a airbnb-spa-pgadmin
+
+# Lister les apps
+fly apps list
+```
+
+#### Secrets Fly à connaître
+
+| Secret / env | App | Description |
+|--------------|-----|-------------|
+| `SPRING_DATASOURCE_URL` | backend | `jdbc:postgresql://airbnb-spa-db.internal:5432/airbnb_spa` |
+| `SPRING_DATASOURCE_USERNAME` | backend | Souvent `postgres` (valeur affichée à la création) |
+| `SPRING_DATASOURCE_PASSWORD` | backend | Mot de passe Postgres |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | backend | Compte admin applicatif |
+| `BACKEND_HOST` | frontend | Défini dans `fly.frontend.toml` → `airbnb-spa-backend.internal` |
+| `POSTGRES_HOST` | pgAdmin | `airbnb-spa-db.internal` |
+| `PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD` | pgAdmin | Login UI |
+
+#### Points d’attention
+
+1. **HTTPS** est fourni par Fly — nécessaire avec HTTP Basic Auth.
+2. Changez les mots de passe admin / pgAdmin avant un usage réel.
+3. Backend et Postgres doivent être dans la **même org** Fly (réseau `.internal`).
+4. Si vous renommez les apps, mettez à jour `BACKEND_HOST`, `POSTGRES_HOST` et les `app = "..."` dans les `fly.toml`.
+5. `--org personal` : adaptez avec le nom renvoyé par `fly orgs list`.
 
 ### Sauvegarde de la base de données
+
+**Docker Compose (local) :**
 
 ```bash
 # Sauvegarder
@@ -412,6 +604,19 @@ docker exec airbnb-spa-db pg_dump -U airbnb airbnb_spa > backup_$(date +%Y%m%d).
 
 # Restaurer
 cat backup.sql | docker exec -i airbnb-spa-db psql -U airbnb airbnb_spa
+```
+
+**Fly.io :**
+
+```bash
+# Sauvegarder (depuis une machine ayant accès au réseau privé, ou via fly postgres connect)
+fly postgres connect -a airbnb-spa-db -d airbnb_spa
+# Puis dans psql : \copy / commandes dump selon besoin
+
+# Alternative : ouvrir un tunnel puis pg_dump en local
+fly proxy 5432 -a airbnb-spa-db
+# dans un autre terminal :
+# pg_dump -h localhost -U postgres -d airbnb_spa > backup.sql
 ```
 
 ---
