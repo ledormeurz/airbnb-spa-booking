@@ -85,7 +85,7 @@ public class BookingService {
     @Transactional(readOnly = true)
     public List<BookingResponseDTO> getUserBookings(Long userId) {
         User user = userService.findById(userId);
-        return bookingRepository.findByUser(user).stream()
+        return bookingRepository.findAccessibleByUser(user, user.getEmail()).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -97,6 +97,20 @@ public class BookingService {
     public BookingResponseDTO getBookingById(Long id) {
         Booking booking = findBookingById(id);
         return toDTO(booking);
+    }
+
+    /**
+     * Retourne l'entité Booking si l'utilisateur courant y a accès
+     * (propriétaire lié ou même email pour une réservation anonyme).
+     */
+    @Transactional(readOnly = true)
+    public Booking getAccessibleBooking(Long id, User currentUser) {
+        Booking booking = findBookingById(id);
+        if (!canAccess(booking, currentUser)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You can only access your own bookings");
+        }
+        return booking;
     }
 
     /**
@@ -372,6 +386,17 @@ public class BookingService {
             return false;
         }
         return booking.getUser().getId().equals(user.getId());
+    }
+
+    private boolean canAccess(Booking booking, User user) {
+        if (user == null) {
+            return false;
+        }
+        if (booking.getUser() != null) {
+            return booking.getUser().getId().equals(user.getId());
+        }
+        return booking.getEmail() != null
+                && booking.getEmail().equalsIgnoreCase(user.getEmail());
     }
 
     private BookingResponseDTO toDTO(Booking booking) {

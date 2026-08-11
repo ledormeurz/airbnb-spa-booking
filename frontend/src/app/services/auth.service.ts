@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
-import { User } from '../models/user.model';
+import { catchError, map, tap } from 'rxjs/operators';
+import { AuthResponse, User } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -10,36 +10,30 @@ import { User } from '../models/user.model';
 export class AuthService {
   private apiUrl = '/api';
   private currentUser: User | null = null;
-  private credentials: { username: string; password: string } | null = null;
+  private accessToken: string | null = null;
   private authState = new BehaviorSubject<User | null>(null);
 
   authState$ = this.authState.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  login(username: string, password: string): Observable<User> {
-    this.credentials = { username, password };
-    return this.loadUserProfile().pipe(
-      tap(user => {
-        this.currentUser = user;
-        this.authState.next(user);
+  login(email: string, password: string): Observable<User> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/public/login`, { email, password }).pipe(
+      tap(response => {
+        this.accessToken = response.accessToken;
+        this.currentUser = response.user;
+        this.authState.next(response.user);
       }),
+      map(response => response.user),
       catchError(error => {
-        this.credentials = null;
+        this.clearSession();
         return throwError(() => error);
       })
     );
   }
 
-  private loadUserProfile(): Observable<User> {
-    const headers = this.buildAuthHeaders();
-    return this.http.get<User>(`${this.apiUrl}/user/profile`, { headers });
-  }
-
   logout(): void {
-    this.currentUser = null;
-    this.credentials = null;
-    this.authState.next(null);
+    this.clearSession();
   }
 
   getCurrentUser(): User | null {
@@ -47,28 +41,25 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.currentUser !== null;
+    return this.currentUser !== null && this.accessToken !== null;
   }
 
   isAdmin(): boolean {
     return this.currentUser?.role === 'ROLE_ADMIN' || this.currentUser?.role === 'ADMIN';
   }
 
-  getCredentials(): { username: string; password: string } | null {
-    return this.credentials;
+  getAccessToken(): string | null {
+    return this.accessToken;
   }
 
   getAuthHeader(): string | null {
-    if (!this.credentials) return null;
-    return 'Basic ' + btoa(`${this.credentials.username}:${this.credentials.password}`);
+    if (!this.accessToken) return null;
+    return `Bearer ${this.accessToken}`;
   }
 
-  private buildAuthHeaders(): HttpHeaders {
-    let headers = new HttpHeaders();
-    const authHeader = this.getAuthHeader();
-    if (authHeader) {
-      headers = headers.set('Authorization', authHeader);
-    }
-    return headers;
+  private clearSession(): void {
+    this.currentUser = null;
+    this.accessToken = null;
+    this.authState.next(null);
   }
 }

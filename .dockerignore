@@ -1,0 +1,23 @@
+# Dépendances et builds (régénérés dans l'image)
+**/node_modules
+**/dist
+**/.angular
+backend/target
+backend/*.jar
+backend/*.war
+
+# Contrôle de version et CI
+.git
+.github
+
+# IDE / OS
+.idea
+*.iml
+.vscode
+.DS_Store
+Thumbs.db
+
+# Secrets et logs
+.env
+*.env.local
+*.log

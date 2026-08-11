@@ -212,15 +212,19 @@ airbnb-spa-booking/
 | `GET` | `/api/public/prices` | Grille tarifaire (prix par saison / type de séjour) |
 | `GET` | `/api/public/availability` | Disponibilités sur une période (paramètres : `startDate`, `endDate`) |
 | `POST` | `/api/public/booking-requests` | Créer une demande de réservation (anonyme) |
+| `POST` | `/api/public/register` | Créer un compte utilisateur (email + mot de passe) |
+| `POST` | `/api/public/login` | Connexion JWT (email + mot de passe → access token) |
 
-### Endpoints utilisateur (authentification Basic requise)
+### Endpoints utilisateur (JWT Bearer requis)
 
 | Méthode | Chemin | Description |
 |---------|--------|-------------|
 | `GET` | `/api/user/profile` | Profil de l'utilisateur connecté |
 | `GET` | `/api/user/bookings` | Liste des réservations de l'utilisateur connecté |
+| `GET` | `/api/user/bookings/{id}` | Détail d'une réservation (propriétaire uniquement) |
+| `GET` | `/api/user/bookings/{id}/calendar.ics` | Export iCalendar (`.ics`) de la réservation |
 
-### Endpoints administrateur (authentification Basic + rôle ADMIN requis)
+### Endpoints administrateur (JWT Bearer + rôle ADMIN requis)
 
 | Méthode | Chemin | Description |
 |---------|--------|-------------|
@@ -230,43 +234,139 @@ airbnb-spa-booking/
 | `GET` | `/api/admin/prices` | Gestion des prix |
 | `GET` | `/api/admin/equipment` | Gestion des équipements |
 | `GET` | `/api/admin/availability-blocks` | Blocs d'indisponibilité |
+| `POST` | `/api/admin/availability-blocks/import-ics` | Import d'un fichier `.ics` (multipart `file`, `source`) |
+
+### Export iCalendar (`.ics`)
+
+Un utilisateur connecté peut télécharger un fichier **iCalendar** pour une de ses réservations, puis l'ouvrir dans Outlook, Google Calendar, Apple Calendar, etc.
+
+- **API** : `GET /api/user/bookings/{id}/calendar.ics` (JWT Bearer requis, propriétaire uniquement)
+- **Frontend** : bouton **Ajouter à mon agenda** sur la page détail d'une réservation (`/user/bookings/{id}`)
+- **Contenu** : événement journée entière (`UID` stable `booking-{id}@airbnbspa.com`, titre, dates, statut)
+
+Exemple :
+
+```bash
+curl -H "Authorization: Bearer <accessToken>" \
+  -o reservation-1.ics \
+  http://localhost:8080/api/user/bookings/1/calendar.ics
+```
+
+### Import iCalendar → blocs d'indisponibilité
+
+Un **admin** peut importer un export calendrier (ex. Airbnb) pour bloquer les dates déjà réservées ailleurs. Les événements deviennent des `AvailabilityBlock` (pas des `Booking` clients).
+
+- **API** : `POST /api/admin/availability-blocks/import-ics` (multipart : `file` + `source` optionnel, défaut `ICAL`)
+- **Upsert** par `UID` iCal (`external_uid`) : réimporter le même fichier met à jour sans doublons
+- **Dates** : `DTEND` iCal `VALUE=DATE` est exclusif → converti en `endDate` inclusive côté app
+
+Exemple :
+
+```bash
+curl -H "Authorization: Bearer <accessToken>" \
+  -F "file=@listing.ics" \
+  -F "source=AIRBNB" \
+  http://localhost:8080/api/admin/availability-blocks/import-ics
+```
+
+### Sync URL iCal (Airbnb / Booking)
+
+Un admin peut enregistrer l’URL iCal du calendrier hosting. Le serveur télécharge périodiquement le `.ics` et met à jour les `AvailabilityBlock` (même logique d’upsert que l’import fichier).
+
+- **API** :
+  - `GET/POST /api/admin/calendar-feeds`
+  - `POST /api/admin/calendar-feeds/{id}/sync` (sync manuelle)
+  - `DELETE /api/admin/calendar-feeds/{id}`
+- **UI** : carte **Sync URL calendrier** sur `/admin/calendar`
+- **Job** : toutes les ~10 min (`app.calendar-sync.fixed-delay-ms`), désactivable via `CALENDAR_SYNC_ENABLED=false`
+- **Sécurité** : seules les URL `airbnb.com` / `airbnb.fr` / `booking.com` sont acceptées
+
+Exemple :
+
+```bash
+curl -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Airbnb","url":"https://www.airbnb.com/calendar/ical/....ics","source":"AIRBNB"}' \
+  http://localhost:8080/api/admin/calendar-feeds
+
+curl -X POST -H "Authorization: Bearer <accessToken>" \
+  http://localhost:8080/api/admin/calendar-feeds/1/sync
+```
 
 ---
 
 ## 🔐 Authentification
 
-Ce projet utilise **HTTP Basic Authentication**.
+Le frontend utilise un **JWT access token** simple. L'identifiant de connexion est l'**email**.
+HTTP Basic Auth reste disponible en fallback (tests / curl).
 
-### Comment ça fonctionne
+### Comment ça fonctionne (JWT)
 
-1. Le client envoie ses identifiants (`username:password`) encodés en **Base64** dans l'en-tête HTTP `Authorization`.
-2. Le serveur décode les identifiants et vérifie leur validité.
-3. Si valides, la requête est traitée avec le rôle de l'utilisateur (`USER` ou `ADMIN`).
-4. Si invalides, le serveur répond avec un statut `401 Unauthorized`.
+1. `POST /api/public/login` avec `{ email, password }`.
+2. Le serveur vérifie les identifiants et renvoie un `accessToken` (claims : `sub`, `uid`, `role`, `exp`).
+3. Les requêtes protégées envoient `Authorization: Bearer <accessToken>`.
+4. Le filtre JWT valide la signature et l'expiration, puis place l'utilisateur dans le contexte Spring Security.
+5. Token invalide / expiré → `401 Unauthorized`.
 
-### Exemple
+Durée par défaut : **1 heure** (`JWT_EXPIRATION_MS`).
+
+### Rate limiting (anti-spam)
+
+Un filtre HTTP limite le nombre de requêtes **par IP** sur les endpoints sensibles :
+
+| Endpoint | Défaut |
+|----------|--------|
+| `POST /api/public/login` | 20 / minute |
+| `POST /api/public/register` | 10 / 10 minutes |
+| `POST /api/public/booking-requests` | 15 / 15 minutes |
+| Sync calendrier admin | 30 / 10 minutes |
+
+En cas de dépassement → **`429 Too Many Requests`** (+ header `Retry-After`).
+
+- Activation : `RATE_LIMIT_ENABLED` (défaut `true`)
+- En tests automatiques : désactivé (`application-test.yml`)
+- Les limites restent assez larges pour tester manuellement en local ; on peut les resserrer via les variables `RATE_LIMIT_*_MAX` / `RATE_LIMIT_*_WINDOW_MS`
+
+Le lockout login existant (5 échecs → 15 min, par email) reste actif en complément.
+
+### Créer un compte (inscription)
+
+N'importe qui peut créer un compte `USER` en libre-service via l'endpoint public `POST /api/public/register` :
 
 ```bash
-# Encoder les identifiants
-echo -n "admin:admin123" | base64
-# Résultat : YWRtaW46YWRtaW4xMjM=
-
-# Envoyer la requête
-curl -H "Authorization: Basic YWRtaW46YWRtaW4xMjM=" http://localhost:8080/api/admin/dashboard
+curl -X POST http://localhost:8080/api/public/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"jean@example.com","password":"secret123","firstName":"Jean","lastName":"Dupont"}'
 ```
 
-Ou plus simplement :
+Le mot de passe doit contenir au moins 6 caractères. L'email doit être unique.
+
+### Exemple de connexion JWT (admin)
 
 ```bash
-curl -u admin:admin123 http://localhost:8080/api/admin/dashboard
+# 1) Obtenir un access token
+curl -s -X POST http://localhost:8080/api/public/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@airbnbspa.com","password":"admin123"}'
+
+# 2) Appeler un endpoint protégé
+curl -H "Authorization: Bearer <accessToken>" http://localhost:8080/api/admin/dashboard
+```
+
+Fallback Basic Auth (toujours supporté) :
+
+```bash
+curl -u admin@airbnbspa.com:admin123 http://localhost:8080/api/admin/dashboard
 ```
 
 ### Rôles
 
-| Rôle | Compte démo | Accès |
-|------|------------|-------|
-| `ADMIN` | `admin` / `admin123` | Tous les endpoints admin + utilisateur + publics |
-| `USER` | `user1` / `password123` | Endpoints utilisateur + publics uniquement |
+| Rôle | Compte démo (email / mot de passe) | Accès |
+|------|------------------------------------|-------|
+| `ADMIN` | `admin@airbnbspa.com` / `admin123` | Tous les endpoints admin + utilisateur + publics |
+| `USER` | `john@example.com` / `password123` | Endpoints utilisateur + publics uniquement |
+
+> **ℹ️ Note :** L'email de l'administrateur est `admin@airbnbspa.com`. Le mot de passe correspond à la variable `ADMIN_PASSWORD` (par défaut `admin123`) définie au premier démarrage.
 
 > **⚠️ ATTENTION :** Changez impérativement les mots de passe par défaut avant toute mise en production.
 
@@ -281,7 +381,7 @@ curl -u admin:admin123 http://localhost:8080/api/admin/dashboard
 HTTP Basic Auth se contente d'encoder les identifiants en **Base64**, ce n'est PAS du chiffrement. Le Base64 est un simple encodage réversible instantanément. Un attaquant qui intercepte le trafic réseau peut décoder les identifiants en quelques secondes.
 
 ```
-username:password  ──encodage Base64──►  YWRtaW46YWRtaW4xMjM=  ──décodage──►  username:password
+email:password  ──encodage Base64──►  (chaîne encodée)  ──décodage──►  email:password
 ```
 
 ### 2. HTTPS est OBLIGATOIRE en production
@@ -341,18 +441,21 @@ Une fois que l'utilisateur a fourni ses identifiants, le navigateur les renvoie 
 | `SPRING_PROFILES_ACTIVE` | Profil Spring actif | `dev` | Non |
 | `ADMIN_USERNAME` | Identifiant admin par défaut | `admin` | Non |
 | `ADMIN_PASSWORD` | Mot de passe admin par défaut | `admin123` | Non |
+| `JWT_SECRET` | Secret de signature JWT (HS256, ≥ 32 car.) | valeur démo | **Oui en prod** |
+| `JWT_EXPIRATION_MS` | Durée de vie du access token (ms) | `3600000` (1h) | Non |
 | `SERVER_PORT` | Port du backend (interne) | `8080` | Non |
 
 ---
 
 ## 👤 Comptes de démonstration
 
-| Rôle | Identifiant | Mot de passe |
-|------|-------------|-------------|
-| **Administrateur** | `admin` | `admin123` |
-| **Utilisateur** | `user1` | `password123` |
+| Rôle | Email (identifiant de connexion) | Mot de passe |
+|------|----------------------------------|-------------|
+| **Administrateur** | `admin@airbnbspa.com` | `admin123` |
+| **Utilisateur** | `john@example.com` | `password123` |
+| **Utilisateur** | `jane@example.com` | `password456` |
 
-> Ces comptes sont créés automatiquement au premier démarrage de l'application via un seed dans la base de données. Changez les mots de passe dès que possible en production.
+> Ces comptes sont créés automatiquement au premier démarrage de l'application via un seed dans la base de données. La connexion se fait avec l'**email** et le mot de passe. Changez les mots de passe dès que possible en production.
 
 ---
 

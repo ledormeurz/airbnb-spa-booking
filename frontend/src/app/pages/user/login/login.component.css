@@ -36,3 +36,20 @@
   font-weight: 700;
   font-size: 1.1rem;
 }
+
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}
+
+.login-footer a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
+}

@@ -86,16 +86,30 @@
           </div>
         }
 
-        @if (booking.status === 'PENDING') {
-          <div class="detail-actions">
+        <div class="detail-actions">
+          <button type="button" class="btn btn-primary" (click)="downloadCalendar()">
+            Ajouter à mon agenda
+          </button>
+          @if (booking.status === 'PENDING') {
             <button type="button" class="btn btn-secondary" (click)="editBooking()">
               Modifier
             </button>
             <button type="button" class="btn btn-danger" (click)="cancelBooking()">
               Annuler la réservation
             </button>
-          </div>
-        }
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="detail-card card">
+        <p class="detail-message">
+          {{ errorMessage || 'Cette réservation est introuvable ou ne vous appartient pas.' }}
+        </p>
+        <div class="detail-actions">
+          <button type="button" class="btn btn-secondary" (click)="goBack()">
+            Retour à mes réservations
+          </button>
+        </div>
       </div>
     }
   </div>

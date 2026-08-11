@@ -6,10 +6,13 @@ import com.airbnbspa.enums.Role;
 import com.airbnbspa.repository.PriceRuleRepository;
 import com.airbnbspa.service.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,19 +29,25 @@ public class AdminController {
     private final AvailabilityService availabilityService;
     private final PriceCalculationService priceCalculationService;
     private final PriceRuleRepository priceRuleRepository;
+    private final IcalImportService icalImportService;
+    private final CalendarSyncService calendarSyncService;
 
     public AdminController(BookingService bookingService,
                            UserService userService,
                            EquipmentService equipmentService,
                            AvailabilityService availabilityService,
                            PriceCalculationService priceCalculationService,
-                           PriceRuleRepository priceRuleRepository) {
+                           PriceRuleRepository priceRuleRepository,
+                           IcalImportService icalImportService,
+                           CalendarSyncService calendarSyncService) {
         this.bookingService = bookingService;
         this.userService = userService;
         this.equipmentService = equipmentService;
         this.availabilityService = availabilityService;
         this.priceCalculationService = priceCalculationService;
         this.priceRuleRepository = priceRuleRepository;
+        this.icalImportService = icalImportService;
+        this.calendarSyncService = calendarSyncService;
     }
 
     // ==================== DASHBOARD ====================
@@ -124,6 +133,53 @@ public class AdminController {
             return ResponseEntity.ok(availabilityService.getBlocksInRangeDTO(dateFrom, dateTo));
         }
         return ResponseEntity.ok(availabilityService.getAllBlockDTOs());
+    }
+
+    @PostMapping(value = "/availability-blocks/import-ics", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<IcalImportResultDTO> importAvailabilityIcs(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(defaultValue = "ICAL") String source) {
+        IcalImportResultDTO result = icalImportService.importFromFile(file, source);
+        return ResponseEntity.ok(result);
+    }
+
+    // ==================== CALENDAR FEEDS (URL SYNC) ====================
+
+    @GetMapping("/calendar-feeds")
+    public ResponseEntity<List<CalendarFeedDTO>> getCalendarFeeds() {
+        return ResponseEntity.ok(calendarSyncService.getAllFeeds());
+    }
+
+    @PostMapping("/calendar-feeds")
+    public ResponseEntity<CalendarFeedDTO> createCalendarFeed(@Valid @RequestBody CalendarFeedRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(calendarSyncService.createFeed(request));
+    }
+
+    @PutMapping("/calendar-feeds/{id}")
+    public ResponseEntity<CalendarFeedDTO> updateCalendarFeed(
+            @PathVariable Long id,
+            @Valid @RequestBody CalendarFeedRequestDTO request) {
+        return ResponseEntity.ok(calendarSyncService.updateFeed(id, request));
+    }
+
+    @DeleteMapping("/calendar-feeds/{id}")
+    public ResponseEntity<Void> deleteCalendarFeed(@PathVariable Long id) {
+        calendarSyncService.deleteFeed(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/calendar-feeds/{id}/sync")
+    public ResponseEntity<CalendarSyncResultDTO> syncCalendarFeed(@PathVariable Long id) {
+        CalendarSyncResultDTO result = calendarSyncService.syncFeed(id);
+        if ("ERROR".equals(result.getStatus())) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(result);
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/calendar-feeds/sync-all")
+    public ResponseEntity<List<CalendarSyncResultDTO>> syncAllCalendarFeeds() {
+        return ResponseEntity.ok(calendarSyncService.syncAllEnabled());
     }
 
     // ==================== PRICE RULES ====================

@@ -1,0 +1,22 @@
+package com.airbnbspa.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LoginRequestDTO {
+
+    @NotBlank(message = "L'email est requis")
+    @Email(message = "L'email n'est pas valide")
+    private String email;
+
+    @NotBlank(message = "Le mot de passe est requis")
+    private String password;
+}

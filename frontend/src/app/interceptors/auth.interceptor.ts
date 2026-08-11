@@ -1,6 +1,5 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
@@ -11,33 +10,26 @@ export const authInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<unknown>> => {
   const authService = inject(AuthService);
 
-  const isPublicRoute = req.url.includes('/api/public/');
   const isApiRoute = req.url.includes('/api/');
+  const skipAuth =
+    req.url.includes('/api/public/login') ||
+    req.url.includes('/api/public/register');
 
-  if (!isPublicRoute && isApiRoute) {
+  let request = req;
+  if (isApiRoute && !skipAuth) {
     const authHeader = authService.getAuthHeader();
     if (authHeader) {
-      const cloned = req.clone({
+      request = req.clone({
         setHeaders: {
           Authorization: authHeader
         }
       });
-      return next(cloned).pipe(
-        catchError((error: HttpErrorResponse) => {
-          if (error.status === 401) {
-            authService.logout();
-            // Use window.location instead of Router to avoid DI issues
-            window.location.href = '/login';
-          }
-          return throwError(() => error);
-        })
-      );
     }
   }
 
-  return next(req).pipe(
+  return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !isPublicRoute) {
+      if (error.status === 401 && isApiRoute && !skipAuth) {
         authService.logout();
         window.location.href = '/login';
       }

@@ -37,7 +37,14 @@ export class BookingDetailComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.message || 'Erreur lors du chargement de la réservation.';
+        this.booking = null;
+        if (err.status === 403) {
+          this.errorMessage = "Vous n'avez pas accès à cette réservation.";
+        } else if (err.status === 404) {
+          this.errorMessage = 'Réservation introuvable.';
+        } else {
+          this.errorMessage = err.error?.message || 'Erreur lors du chargement de la réservation.';
+        }
       }
     });
   }
@@ -55,6 +62,26 @@ export class BookingDetailComponent implements OnInit {
         }
       });
     }
+  }
+
+  downloadCalendar(): void {
+    if (!this.booking) return;
+
+    this.errorMessage = '';
+    this.apiService.downloadBookingCalendar(this.booking.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `reservation-${this.booking!.id}.ics`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        this.successMessage = 'Fichier agenda (.ics) téléchargé.';
+      },
+      error: () => {
+        this.errorMessage = 'Impossible de télécharger le fichier agenda.';
+      }
+    });
   }
 
   goBack(): void {
