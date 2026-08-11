@@ -310,6 +310,25 @@ HTTP Basic Auth reste disponible en fallback (tests / curl).
 
 Durée par défaut : **1 heure** (`JWT_EXPIRATION_MS`).
 
+### Rate limiting (anti-spam)
+
+Un filtre HTTP limite le nombre de requêtes **par IP** sur les endpoints sensibles :
+
+| Endpoint | Défaut |
+|----------|--------|
+| `POST /api/public/login` | 20 / minute |
+| `POST /api/public/register` | 10 / 10 minutes |
+| `POST /api/public/booking-requests` | 15 / 15 minutes |
+| Sync calendrier admin | 30 / 10 minutes |
+
+En cas de dépassement → **`429 Too Many Requests`** (+ header `Retry-After`).
+
+- Activation : `RATE_LIMIT_ENABLED` (défaut `true`)
+- En tests automatiques : désactivé (`application-test.yml`)
+- Les limites restent assez larges pour tester manuellement en local ; on peut les resserrer via les variables `RATE_LIMIT_*_MAX` / `RATE_LIMIT_*_WINDOW_MS`
+
+Le lockout login existant (5 échecs → 15 min, par email) reste actif en complément.
+
 ### Créer un compte (inscription)
 
 N'importe qui peut créer un compte `USER` en libre-service via l'endpoint public `POST /api/public/register` :
