@@ -42,3 +42,19 @@ app:
     enabled: ${CALENDAR_SYNC_ENABLED:true}
     fixed-delay-ms: ${CALENDAR_SYNC_FIXED_DELAY_MS:600000}
     initial-delay-ms: ${CALENDAR_SYNC_INITIAL_DELAY_MS:60000}
+  rate-limit:
+    # Limite le spam sur login / register / booking / sync (par IP)
+    # Assez large pour les tests manuels locaux ; resserrer en prod via env
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    login:
+      max-requests: ${RATE_LIMIT_LOGIN_MAX:20}
+      window-ms: ${RATE_LIMIT_LOGIN_WINDOW_MS:60000}
+    register:
+      max-requests: ${RATE_LIMIT_REGISTER_MAX:10}
+      window-ms: ${RATE_LIMIT_REGISTER_WINDOW_MS:600000}
+    booking:
+      max-requests: ${RATE_LIMIT_BOOKING_MAX:15}
+      window-ms: ${RATE_LIMIT_BOOKING_WINDOW_MS:900000}
+    sync:
+      max-requests: ${RATE_LIMIT_SYNC_MAX:30}
+      window-ms: ${RATE_LIMIT_SYNC_WINDOW_MS:600000}

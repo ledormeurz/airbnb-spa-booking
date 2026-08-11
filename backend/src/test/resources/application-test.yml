@@ -17,3 +17,18 @@ app:
     enabled: false
     fixed-delay-ms: 3600000
     initial-delay-ms: 3600000
+  rate-limit:
+    # Désactivé par défaut en tests pour ne pas casser les suites existantes
+    enabled: false
+    login:
+      max-requests: 1000
+      window-ms: 60000
+    register:
+      max-requests: 1000
+      window-ms: 60000
+    booking:
+      max-requests: 1000
+      window-ms: 60000
+    sync:
+      max-requests: 1000
+      window-ms: 60000

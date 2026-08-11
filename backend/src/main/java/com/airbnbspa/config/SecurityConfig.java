@@ -39,11 +39,14 @@ public class SecurityConfig {
 
     private final LoginAttemptService loginAttemptService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitFilter rateLimitFilter;
 
     public SecurityConfig(LoginAttemptService loginAttemptService,
-                          JwtAuthenticationFilter jwtAuthenticationFilter) {
+                          JwtAuthenticationFilter jwtAuthenticationFilter,
+                          RateLimitFilter rateLimitFilter) {
         this.loginAttemptService = loginAttemptService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -96,6 +99,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             // Basic Auth conservé en fallback (tests / curl) ; le front utilise JWT.
             .httpBasic(Customizer.withDefaults())
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(authenticationEntryPoint())
