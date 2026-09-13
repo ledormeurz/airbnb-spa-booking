@@ -33,6 +33,69 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
     }
 
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+    }
+
+    /**
+     * Résout un utilisateur à partir de son identifiant de connexion : on tente
+     * d'abord par email (identifiant principal), puis par username en repli
+     * (comptes existants seedés / créés par l'admin).
+     */
+    public User findByLogin(String login) {
+        return userRepository.findByEmail(login)
+                .or(() -> userRepository.findByUsername(login))
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + login));
+    }
+
+    /**
+     * Inscription publique en libre-service : crée un compte ROLE_USER activé à
+     * partir d'un email et d'un mot de passe. Le username est généré en interne.
+     */
+    public UserDTO register(String email, String password, String firstName, String lastName) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("L'email est requis");
+        }
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Le mot de passe est requis");
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Un compte existe déjà avec cet email");
+        }
+
+        User user = User.builder()
+                .username(generateUniqueUsername(email))
+                .passwordHash(passwordEncoder.encode(password))
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(email)
+                .role(Role.ROLE_USER)
+                .enabled(true)
+                .build();
+
+        return toUserDTO(userRepository.save(user));
+    }
+
+    private String generateUniqueUsername(String email) {
+        String base = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        base = base.replaceAll("[^a-zA-Z0-9._-]", "");
+        if (base.isBlank()) {
+            base = "user";
+        }
+        if (base.length() > 40) {
+            base = base.substring(0, 40);
+        }
+
+        String candidate = base;
+        int suffix = 1;
+        while (userRepository.existsByUsername(candidate)) {
+            candidate = base + suffix;
+            suffix++;
+        }
+        return candidate;
+    }
+
     public User createUser(UserDTO dto, String password) {
         if (dto.getUsername() == null || dto.getUsername().isBlank()) {
             throw new IllegalArgumentException("Username is required");

@@ -7,6 +7,7 @@ import { PricesComponent } from './pages/public/prices/prices.component';
 import { AvailabilityComponent } from './pages/public/availability/availability.component';
 import { BookingFormComponent } from './pages/public/booking-form/booking-form.component';
 import { LoginComponent } from './pages/user/login/login.component';
+import { RegisterComponent } from './pages/user/register/register.component';
 import { ProfileComponent } from './pages/user/profile/profile.component';
 import { MyBookingsComponent } from './pages/user/my-bookings/my-bookings.component';
 import { BookingDetailComponent } from './pages/user/my-bookings/booking-detail.component';
@@ -28,6 +29,7 @@ export const routes: Routes = [
   { path: 'availability', component: AvailabilityComponent },
   { path: 'booking', component: BookingFormComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
   { path: 'user/profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'user/bookings', component: MyBookingsComponent, canActivate: [AuthGuard] },
   { path: 'user/bookings/:id', component: BookingDetailComponent, canActivate: [AuthGuard] },

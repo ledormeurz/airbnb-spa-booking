@@ -4,6 +4,7 @@ npm-debug.log*
 
 # Angular build
 /frontend/dist/
+/frontend/.angular/
 
 # Java build
 backend/target/
@@ -22,6 +23,9 @@ Thumbs.db
 # Env
 .env
 *.env.local
+
+# Profil local Spring (identifiants en clair, ne pas committer)
+**/application-local.yml
 
 # Logs
 *.log

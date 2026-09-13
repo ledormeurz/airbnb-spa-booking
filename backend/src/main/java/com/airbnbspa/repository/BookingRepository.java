@@ -14,6 +14,15 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUser(User user);
+
+    @Query("""
+            SELECT b FROM Booking b
+            WHERE b.user = :user
+               OR LOWER(b.email) = LOWER(:email)
+            ORDER BY b.startDate DESC
+            """)
+    List<Booking> findAccessibleByUser(@Param("user") User user, @Param("email") String email);
+
     List<Booking> findByStatus(BookingStatus status);
     List<Booking> findByStartDateBetween(LocalDate start, LocalDate end);
     List<Booking> findByStatusNotAndStartDateBetween(BookingStatus status, LocalDate start, LocalDate end);

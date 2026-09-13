@@ -14,17 +14,24 @@
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
       <div class="form-group">
-        <label class="form-label" for="username">Nom d'utilisateur</label>
+        <label class="form-label" for="email">Email</label>
         <input
-          id="username"
-          type="text"
+          id="email"
+          type="email"
           class="form-control"
-          [class.is-invalid]="f['username'].touched && f['username'].invalid"
-          formControlName="username"
-          placeholder="Votre nom d'utilisateur"
+          [class.is-invalid]="f['email'].touched && f['email'].invalid"
+          formControlName="email"
+          placeholder="votre@email.com"
+          autocomplete="email"
         />
-        @if (f['username'].touched && f['username'].invalid) {
-          <div class="form-error">Le nom d'utilisateur est requis</div>
+        @if (f['email'].touched && f['email'].invalid) {
+          <div class="form-error">
+            @if (f['email'].errors?.['required']) {
+              L'email est requis
+            } @else {
+              L'email n'est pas valide
+            }
+          </div>
         }
       </div>
 
@@ -50,5 +57,10 @@
         {{ loading ? 'Connexion...' : 'Se connecter' }}
       </button>
     </form>
+
+    <p class="login-footer">
+      Pas encore de compte ?
+      <a routerLink="/register">Créer un compte</a>
+    </p>
   </div>
 </div>

@@ -19,6 +19,7 @@
       <a routerLink="/booking" routerLinkActive="active" (click)="closeMenus()">Réserver</a>
 
       @if (!currentUser) {
+        <a routerLink="/register" routerLinkActive="active" (click)="closeMenus()">Inscription</a>
         <a routerLink="/login" routerLinkActive="active" class="nav-login-btn" (click)="closeMenus()">Connexion</a>
       }
 

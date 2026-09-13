@@ -7,7 +7,7 @@ import { Equipment } from '../models/equipment.model';
 import { AvailabilityBlock } from '../models/availability.model';
 import { Dashboard } from '../models/dashboard.model';
 import { PropertyInfo } from '../models/property-info.model';
-import { User } from '../models/user.model';
+import { User, RegisterRequest } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -42,6 +42,10 @@ export class ApiService {
     return this.http.post<Booking>(`${this.apiUrl}/public/booking-requests`, request);
   }
 
+  register(request: RegisterRequest): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/public/register`, request);
+  }
+
   // ==================== USER ====================
 
   getProfile(): Observable<User> {
@@ -66,6 +70,12 @@ export class ApiService {
 
   cancelBooking(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/user/bookings/${id}`);
+  }
+
+  downloadBookingCalendar(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/user/bookings/${id}/calendar.ics`, {
+      responseType: 'blob'
+    });
   }
 
   // ==================== ADMIN ====================

@@ -2,14 +2,18 @@ package com.airbnbspa.controller;
 
 import com.airbnbspa.dto.*;
 import com.airbnbspa.entity.PriceRule;
+import com.airbnbspa.service.AuthService;
 import com.airbnbspa.service.AvailabilityService;
 import com.airbnbspa.service.BookingService;
 import com.airbnbspa.service.EquipmentService;
 import com.airbnbspa.service.PriceCalculationService;
+import com.airbnbspa.service.UserService;
+import com.airbnbspa.entity.User;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -25,15 +29,21 @@ public class PublicController {
     private final PriceCalculationService priceCalculationService;
     private final BookingService bookingService;
     private final AvailabilityService availabilityService;
+    private final UserService userService;
+    private final AuthService authService;
 
     public PublicController(EquipmentService equipmentService,
                             PriceCalculationService priceCalculationService,
                             BookingService bookingService,
-                            AvailabilityService availabilityService) {
+                            AvailabilityService availabilityService,
+                            UserService userService,
+                            AuthService authService) {
         this.equipmentService = equipmentService;
         this.priceCalculationService = priceCalculationService;
         this.bookingService = bookingService;
         this.availabilityService = availabilityService;
+        this.userService = userService;
+        this.authService = authService;
     }
 
     @GetMapping("/property")
@@ -100,9 +110,36 @@ public class PublicController {
 
     @PostMapping("/booking-requests")
     public ResponseEntity<BookingResponseDTO> createBookingRequest(
-            @Valid @RequestBody BookingRequestDTO requestDTO) {
-        // Anonymous booking - user is null
-        BookingResponseDTO response = bookingService.createBooking(requestDTO, null);
+            @Valid @RequestBody BookingRequestDTO requestDTO,
+            Authentication authentication) {
+        User user = resolveAuthenticatedUser(authentication);
+        BookingResponseDTO response = bookingService.createBooking(requestDTO, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private User resolveAuthenticatedUser(Authentication authentication) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getPrincipal() == null
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+        return userService.findByLogin(authentication.getName());
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UserDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
+        UserDTO created = userService.register(
+                request.getEmail(),
+                request.getPassword(),
+                request.getFirstName(),
+                request.getLastName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+        AuthResponseDTO response = authService.login(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(response);
     }
 }
