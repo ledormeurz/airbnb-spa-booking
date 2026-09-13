@@ -64,9 +64,13 @@ public class PriceCalculationService {
         return totalPrice;
     }
 
+    /**
+     * Weekend rates apply to Friday and Saturday nights (hospitality convention:
+     * Fri→Sat and Sat→Sun stays). Sunday–Thursday nights use weekday rates.
+     */
     private DayType classifyDay(LocalDate date) {
         DayOfWeek dayOfWeek = date.getDayOfWeek();
-        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+        if (dayOfWeek == DayOfWeek.FRIDAY || dayOfWeek == DayOfWeek.SATURDAY) {
             return DayType.WEEKEND;
         }
         return DayType.WEEKDAY;

@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,8 +68,9 @@ class PublicControllerIntegrationTest {
         request.put("lastName", "Doe");
         request.put("email", "jane.doe@example.com");
         request.put("phone", "0611223344");
-        request.put("startDate", "2026-08-15");
-        request.put("endDate", "2026-08-17");
+        // Must be @Future relative to "now" — hardcoded Aug 2026 dates fail once wall-clock is past them
+        request.put("startDate", LocalDate.now().plusDays(30).toString());
+        request.put("endDate", LocalDate.now().plusDays(32).toString());
         request.put("numberOfGuests", 2);
         request.put("bookingType", "NIGHT_STAY");
         request.put("message", "Looking forward to it!");
